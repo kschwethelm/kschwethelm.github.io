@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kristian Schwethelm</title>
+<meta name="description" content="PhD student at TU Munich working on looped transformers and large language models." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧐</text></svg>" />
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --dim: #6b6f78;
+    --line: #e5e5e5;
+    --accent: #2563eb;
+    --pill-bg: rgba(255,255,255,0.75);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0b0d;
+      --fg: #e8e6e0;
+      --dim: #a0a6b0;
+      --line: #2a2e36;
+      --accent: #6aa9ff;
+      --pill-bg: rgba(10,11,13,0.7);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--accent); }
+
+  /* status pill */
+  .status-bar {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--fg);
+    background: var(--pill-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap;
+    transition: border-color 0.2s;
+  }
+  .status:hover { border-color: var(--accent); color: var(--fg); }
+  .status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #3fdb7c;
+    box-shadow: 0 0 6px rgba(63,219,124,0.7);
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+  }
+  .status strong { color: var(--fg); font-weight: 500; }
+  .status .arrow { color: var(--accent); }
+
+  main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 140px 40px 100px;
+  }
+
+  /* hero */
+  .hero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .hero img {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .role {
+    color: var(--dim);
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .interests {
+    color: var(--accent);
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
+    font-size: 14px;
+    color: var(--dim);
+  }
+  .links a { color: var(--dim); }
+  .links a:hover { color: var(--accent); }
+  .links .sep { margin: 0 8px; color: var(--line); }
+
+  /* about */
+  .about {
+    margin-top: 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .about p { color: var(--fg); }
+  .about strong { font-weight: 500; }
+  .about em { font-style: italic; color: var(--fg); }
+  .about a { color: var(--fg); border-bottom: 1px solid var(--line); }
+  .about a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* latest */
+  .latest {
+    margin-top: 32px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--dim);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .latest .tag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+  }
+  .latest a { color: var(--fg); }
+  .latest a:hover { color: var(--accent); }
+
+  /* selected work */
+  .label {
+    margin-top: 64px;
+    margin-bottom: 20px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--dim);
+  }
+
+  .pub {
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pub:last-of-type { border-bottom: 1px solid var(--line); }
+
+  .pub-venue {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .pub-title {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--fg);
+    line-height: 1.4;
+  }
+  .pub-title a { color: var(--fg); transition: color 0.2s; }
+  .pub-title a:hover { color: var(--accent); }
+  .pub-authors {
+    font-size: 14px;
+    color: var(--dim);
+  }
+  .pub-tldr {
+    font-size: 15px;
+    color: var(--dim);
+    margin-top: 2px;
+    line-height: 1.55;
+  }
+  .pub-tldr em { font-style: italic; color: var(--fg); }
+  .pub-links {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 13px;
+    margin-top: 4px;
+    color: var(--dim);
+  }
+  .pub-links a { color: var(--dim); }
+  .pub-links a:hover { color: var(--accent); }
+  .pub-links .sep { margin: 0 10px; color: var(--line); }
+
+  /* footer */
+  footer {
+    margin-top: 64px;
+    font-size: 12px;
+    color: var(--dim);
+    text-align: center;
+  }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    main { padding: 110px 24px 80px; }
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      text-align: center;
+      justify-items: center;
+    }
+    .hero img { width: 150px; height: 150px; }
+    .hero h1 { font-size: 28px; }
+    .links { justify-content: center; }
+    .status { font-size: 12px; padding: 6px 12px; }
+    .status-bar { top: 14px; }
+    .about, .latest, .label { margin-top: 48px; }
+    .latest { margin-top: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <a class="status" href="mailto:k.schwethelm@tum.de?subject=LLM%20Research%20Engineer%20Internship">
+    <span class="dot" aria-hidden="true"></span>
+    <span>open to <strong>LLM research engineer</strong> internships <span class="arrow">→</span></span>
+  </a>
+</div>
+
+<main>
+
+  <section class="hero">
+    <img src="assets/avatar.jpg" alt="Kristian Schwethelm" />
+    <div>
+      <h1>Kristian Schwethelm</h1>
+      <div class="role">PhD Student · TU Munich · Chair for AI in Medicine</div>
+      <div class="interests">large language models · looped transformers · trustworthy AI</div>
+      <div class="links">
+        <a href="mailto:k.schwethelm@tum.de">email</a>
+        <span class="sep">·</span>
+        <a href="https://scholar.google.com/citations?user=kschwethelm">scholar</a>
+        <span class="sep">·</span>
+        <a href="https://github.com/kschwethelm">github</a>
+        <span class="sep">·</span>
+        <a href="https://www.linkedin.com/in/kristian-schwethelm/">linkedin</a>
+        <span class="sep">·</span>
+        <a href="https://huggingface.co/KristianS7">huggingface</a>
+        <span class="sep">·</span>
+        <a href="cv.pdf">cv</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="about">
+    <p>
+      I'm a PhD student at the <strong>Chair for AI in Medicine</strong> at TU Munich, supervised by Prof. <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ">Daniel Rückert</a> and Prof. <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ">Georgios Kaissis</a>. I work on pretraining and fine-tuning large language models, with a current focus on <em>looped (depth-recurrent) transformers</em>: how recurrence trades off against parameters, how to retrofit it into pretrained models, and how to induce latent reasoning via RL.
+    </p>
+    <p>
+      In parallel, I work on LLM agents in clinical decision workflows and LLM text extraction from clinical reports. I've previously published on differentially private learning and hyperbolic neural networks. Best Graduate Award (M.Sc. Applied Computer Science, 2024) and Top Reviewer at NeurIPS 2025.
+    </p>
+  </section>
+
+  <a class="latest" href="looped-lm-scaling/">
+    <span class="tag">Latest · 2026</span>
+    <span>Preprint: <em>Iso-Depth Scaling Laws for Looped Language Models</em> →</span>
+  </a>
+
+  <div class="label">Selected work</div>
+
+  <article class="pub">
+    <div class="pub-venue preprint">Preprint '26</div>
+    <div class="pub-title"><a href="looped-lm-scaling/">How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models</a></div>
+    <div class="pub-authors">Schwethelm, Rückert, Kaissis</div>
+    <p class="pub-tldr">
+      We measure the parameter-sharing cost of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: commonly used truncated backpropagation lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss.
+    </p>
+    <div class="pub-links">
+      <a href="looped-lm-scaling/">project page</a>
+      <span class="sep">·</span>
+      <a href="https://arxiv.org/abs/2604.21106">arxiv</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/kschwethelm/looped-lm-scaling">code</a>
+    </div>
+  </article>
+
+  <article class="pub">
+    <div class="pub-venue">TMLR '25</div>
+    <div class="pub-title"><a href="https://arxiv.org/abs/2403.07588">Visual Privacy Auditing with Diffusion Models</a></div>
+    <div class="pub-authors">Schwethelm, Kaiser, Knolle, Lockfisch, Rückert, Ziller</div>
+    <p class="pub-tldr">
+      Diffusion models, used as image priors, can reconstruct training data from differentially private models, exposing a gap between DP's theoretical bounds and what actually leaks in practice.
+    </p>
+    <div class="pub-links">
+      <a href="https://openreview.net/forum?id=D3DA7pgpvn">openreview</a>
+      <span class="sep">·</span>
+      <a href="https://arxiv.org/abs/2403.07588">arxiv</a>
+    </div>
+  </article>
+
+  <article class="pub">
+    <div class="pub-venue">SaTML '25</div>
+    <div class="pub-title"><a href="https://arxiv.org/abs/2410.00542">Differentially Private Active Learning: Balancing Effective Data Selection and Privacy</a></div>
+    <div class="pub-authors">Schwethelm, Kaiser, Kuntzer, Yiğitsoy, Rückert, Kaissis</div>
+    <p class="pub-tldr">
+      First framework for combining active learning with DP-SGD in standard supervised settings. We introduce step amplification to fix privacy budget waste and show which acquisition functions still work under DP, and which fall apart.
+    </p>
+    <div class="pub-links">
+      <a href="https://ieeexplore.ieee.org/document/10992410">ieee</a>
+      <span class="sep">·</span>
+      <a href="https://arxiv.org/abs/2410.00542">arxiv</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/kschwethelm/DPAL">code</a>
+    </div>
+  </article>
+
+  <article class="pub">
+    <div class="pub-venue">ICLR '24</div>
+    <div class="pub-title"><a href="https://arxiv.org/abs/2303.15919">Fully Hyperbolic Convolutional Neural Networks for Computer Vision</a></div>
+    <div class="pub-authors">Schwethelm*, Bdeir*, Landwehr</div>
+    <p class="pub-tldr">
+      HCNN: a CNN that lives entirely in hyperbolic space. We generalize the convolutional layer, batchnorm, and the classifier head to the Lorentz model, so the network leverages hyperbolic geometry at every layer instead of just the head.
+    </p>
+    <div class="pub-links">
+      <a href="https://openreview.net/forum?id=ekz1hN5QNh">openreview</a>
+      <span class="sep">·</span>
+      <a href="https://arxiv.org/abs/2303.15919">arxiv</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/kschwethelm/HyperbolicCV">code</a>
+    </div>
+  </article>
+
+  <footer>© 2026 Kristian Schwethelm</footer>
+
+</main>
+
+</body>
+</html>

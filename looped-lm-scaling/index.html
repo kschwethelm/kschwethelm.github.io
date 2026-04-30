@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Much Is One Recurrence Worth?</title>
+<meta name="description" content="We measure the parameter-sharing cost of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: commonly used truncated backpropagation lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
+<meta name="keywords" content="looped transformer, depth-recurrent, scaling laws, language models, iso-depth, recurrence" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="How Much Is One Recurrence Worth?" />
+<meta property="og:title" content="How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models" />
+<meta property="og:description" content="We measure the parameter-sharing cost of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: commonly used truncated backpropagation lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
+<meta property="og:url" content="https://kschwethelm.github.io/looped-lm-scaling/" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="How Much Is One Recurrence Worth?" />
+<meta name="twitter:description" content="We measure the parameter-sharing cost of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: commonly used truncated backpropagation lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧐</text></svg>" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" />
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --dim: #6b6f78;
+    --line: #e5e5e5;
+    --accent: #2563eb;
+    --box-bg: #fafbfc;
+    --code-bg: #f5f5f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0b0d;
+      --fg: #e8e6e0;
+      --dim: #a0a6b0;
+      --line: #2a2e36;
+      --accent: #6aa9ff;
+      --box-bg: #11141a;
+      --code-bg: #14171e;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: var(--accent); }
+  em { font-style: italic; }
+  strong { font-weight: 600; }
+
+  /* back link */
+  .backlink {
+    position: fixed;
+    top: 20px;
+    left: 24px;
+    z-index: 11;
+    font-size: 13px;
+    color: var(--dim);
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .backlink:hover { color: var(--accent); border-color: var(--accent); }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 40px 80px;
+  }
+
+  /* hero */
+  .hero { text-align: center; margin-bottom: 72px; }
+  .hero h1 {
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .hero h2 {
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--dim);
+    line-height: 1.35;
+    margin-bottom: 32px;
+  }
+  .authors {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .authors sup { font-size: 11px; color: var(--dim); }
+  .authors a {
+    color: var(--fg);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .authors a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+  .affiliations {
+    font-size: 13px;
+    color: var(--dim);
+    margin-bottom: 28px;
+  }
+  .affiliations sup { color: var(--accent); }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 14px;
+    color: var(--fg);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .links a:hover { border-color: var(--accent); color: var(--accent); }
+  .links svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .links .ai { font-size: 18px; line-height: 1; }
+  .links .hf { font-size: 16px; line-height: 1; }
+
+  /* sections */
+  section {
+    margin-bottom: 48px;
+  }
+  section.narrow {
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  h3.section-title {
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: -0.015em;
+  }
+
+  p, ul { margin-bottom: 14px; }
+  p:last-child, ul:last-child { margin-bottom: 0; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 8px; }
+  .prose { color: var(--fg); }
+  .prose .center-eq { text-align: center; margin: 8px 0 14px; }
+
+  /* boxes */
+  .box {
+    background: var(--box-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 22px;
+  }
+  .box.accent {
+    border-left: 3px solid var(--accent);
+  }
+
+  /* news */
+  .news-item {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    background: var(--box-bg);
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  .news-item:last-child { margin-bottom: 0; }
+  .news-date {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .news-item p { margin: 0; }
+
+  /* schematic */
+  figure {
+    margin: 28px auto;
+    max-width: 680px;
+    text-align: center;
+  }
+  figure img { width: 100%; height: auto; }
+  @media (prefers-color-scheme: dark) {
+    figure img { filter: invert(0.9) hue-rotate(180deg); }
+  }
+
+  /* interactive box */
+  .interactive {
+    background: var(--box-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 24px;
+    align-items: end;
+    margin-bottom: 18px;
+  }
+  .control label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .control .val {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--accent);
+  }
+  .control input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .control .help {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 6px;
+  }
+  .control .help .fit { color: var(--accent); }
+  .reset-btn {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .plot-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .plot-row .plot-title {
+    text-align: center;
+    font-size: 13px;
+    color: var(--dim);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .plot-row .plot { width: 100%; height: 430px; }
+
+  .interpretation-note {
+    font-size: 13px;
+    color: var(--dim);
+    margin-top: 16px;
+  }
+
+  /* bibtex */
+  .bibtex-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .bibtex-header h3 { margin-bottom: 0; }
+  .copy-btn {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { color: #3fdb7c; border-color: #3fdb7c; }
+  pre.bibtex {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--fg);
+  }
+
+  /* footer */
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  footer a { color: var(--dim); }
+  footer a:hover { color: var(--accent); }
+
+  /* responsive */
+  @media (max-width: 760px) {
+    main { padding: 90px 20px 60px; }
+    .hero h1 { font-size: 28px; }
+    .hero h2 { font-size: 17px; }
+    h3.section-title { font-size: 19px; }
+    .controls { grid-template-columns: 1fr; gap: 16px; }
+    .plot-row { grid-template-columns: 1fr; }
+    .plot-row .plot { height: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="backlink" href="/">← Kristian Schwethelm</a>
+
+<main>
+
+  <section class="hero">
+    <h1>How Much Is One Recurrence Worth?</h1>
+    <h2>Iso-Depth Scaling Laws for Looped Language Models</h2>
+    <div class="authors">
+      <a href="https://scholar.google.com/citations?user=kschwethelm">Kristian Schwethelm</a><sup>1</sup>,
+      <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ">Daniel Rueckert</a><sup>1,2,3</sup>,
+      <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ">Georgios Kaissis</a><sup>4</sup>
+    </div>
+    <div class="affiliations">
+      <sup>1</sup>Technical University of Munich ·
+      <sup>2</sup>Imperial College London ·
+      <sup>3</sup>MCML ·
+      <sup>4</sup>Hasso Plattner Institute, University of Potsdam
+    </div>
+    <div class="links">
+      <a href="https://arxiv.org/abs/2604.21106">
+        <i class="ai ai-arxiv" aria-hidden="true"></i>
+        <span>arXiv (v2)</span>
+      </a>
+      <a href="https://github.com/kschwethelm/looped-lm-scaling">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55 0-.27-.01-1-.02-1.96-3.2.69-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.96 10.96 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
+        <span>code</span>
+      </a>
+      <a href="https://huggingface.co/collections/KristianS7/iso-depth-scaling-laws-for-looped-lms">
+        <span class="hf">🤗</span>
+        <span>models (soon)</span>
+      </a>
+      <a href="https://huggingface.co/datasets/KristianS7/prepacked-fineweb-edu-llama2-32K-T2048">
+        <span class="hf">🤗</span>
+        <span>data</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="narrow">
+    <h3 class="section-title">News</h3>
+    <div class="news-item">
+      <span class="news-date">2026-04-28</span>
+      <p><strong>Code release.</strong> The full architecture, training and evaluation pipelines are now available.</p>
+    </div>
+    <div class="news-item">
+      <span class="news-date">2026-04-27</span>
+      <p><strong>Version 2.</strong> Added truncated-BPTT and hyperconnections probes, new discussion sections on \(\varphi\) as decision metric and inference cost.</p>
+    </div>
+  </section>
+
+  <section class="narrow">
+    <div class="box accent prose">
+      <h3 class="section-title" style="margin-bottom: 16px;">Abstract</h3>
+      <p>
+        We measure how much one extra recurrence is worth to a looped (depth-recurrent) language model, in equivalent unique parameters. From an iso-depth sweep of 116 pretraining runs across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
+      </p>
+      <p class="center-eq">
+        \( L = E + A\,(N_\text{once} + r^{\varphi} N_\text{rec})^{-\alpha} + B\,D^{-\beta} \)
+      </p>
+      <p>
+        and recover a new <em>recurrence-equivalence exponent</em> \(\varphi = 0.46\). Intuitively, \(\varphi\) tells us whether looping a block \(r\) times is equivalent in validation loss to \(r\) unique blocks of a non-looped model (full equivalence, \(\varphi{=}1\)) or to a single block run repeatedly with no capacity gain (\(\varphi{=}0\)). Our \(\varphi = 0.46\) sits in between, so each additional recurrence predictably increases validation loss at matched training compute. For example, at \(r{=}4\) a 410M looped model performs on par with a 580M non-looped model, but incurs the training cost of a 1B non-looped one. We demonstrate the utility of \(\varphi\) as a measurement tool on two probes. <em>Truncated backpropagation</em> lowers \(\varphi\) to \(0.38\), indicating that the loop mechanism is poorly trained under truncation, even though validation loss decreases. Conversely, <em>hyperconnections</em> raise \(\varphi\) to \(0.65\), a genuine capacity gain. Our method applies to any looped LM and separates true loop improvements from token-budget gains.
+      </p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h3 class="section-title">What is a looped transformer?</h3>
+    <figure>
+      <img src="./static/images/arch_schematic.svg" alt="Prelude-recur-coda schematic for r in {1, 2, 4, 8}" />
+    </figure>
+    <p>
+      A looped transformer iterates a shared block of layers \(r\) times per token, instead of stacking \(r\) different blocks. We adopt the <em>prelude-recur-coda</em> template: a few unshared prelude layers, a shared recur block of layers run \(r\) times with a latent state \(h^{(t)}\) fed back in via an injection layer, then a few unshared coda layers. At fixed <em>effective depth</em> (20 layers per token here), varying \(r\) trades unique parameters for parameter sharing: a non-looped baseline (\(r{=}1\)) has every layer unique, while \(r{=}8\) shares only 2 recur layers across all 8 passes.
+    </p>
+    <p>
+      The FLOPs per token and the effective depth stay the same across \(r\), so the architecture is a clean way to isolate the effect of parameter sharing. The natural question is then: how much of a unique block's worth does a shared block recover when we run it an extra time? That is what \(\varphi\) measures.
+    </p>
+  </section>
+
+  <section class="prose">
+    <h3 class="section-title">What does \(\varphi\) mean? Try it.</h3>
+    <p>
+      The exponent \(\varphi\) quantifies how much one recurrence is worth, in equivalent unique blocks. At \(\varphi{=}0\), the \(r\) loops add no capacity: the recurrent block contributes as a single block no matter how many times you run it. At \(\varphi{=}1\), each loop is worth a full unique block, so an \(r{=}4\) looped model is on the same loss curve as a non-looped model with four copies of that block. Our baseline fit gives \(\varphi = 0.46\), sitting between the two references, so looping currently costs more than it pays back.
+    </p>
+    <p>
+      Left panel: the fitted scaling law at a fixed training compute budget \(C\). Each curve shows validation loss as a function of total parameters for a given recurrence count \(r \in \{1, 2, 4, 8\}\). Its minimum is the compute-optimal allocation at that \(r\). Right panel: the law's predicted compute-optimal loss \(L^{*}(C)\) plotted against the empirical minima from our 116 runs (crosses) across six compute budgets. The vertical dashed line marks the currently selected \(C\). Drag \(\varphi\) to see how the predicted curves shift: at \(\varphi \approx 0.46\) the law's lines hug the empirical points; at \(\varphi{=}0\) or \(\varphi{=}1\) the fit degrades visibly.
+    </p>
+
+    <div class="interactive">
+      <div class="controls">
+        <div class="control">
+          <label>
+            Recurrence-equivalence exponent \(\varphi\):
+            <span id="phi-value" class="val">0.459</span>
+          </label>
+          <input id="phi-slider" type="range" step="0.01" min="0" max="1" value="0.459" />
+          <div class="help">
+            <span>0: no gain</span> &nbsp;·&nbsp;
+            <span class="fit">fit: <span id="phi-fit-label">0.46</span></span> &nbsp;·&nbsp;
+            <span>1: non-loop</span>
+          </div>
+        </div>
+        <div class="control">
+          <label>
+            Training compute \(C\):
+            <span id="c-value" class="val">1.0e19</span> FLOPs
+          </label>
+          <input id="c-slider" type="range" step="0.05" min="17.5" max="19.6" value="19.0" />
+          <div class="help">sweep range: \(4.6 \times 10^{17}\) to \(2.2 \times 10^{19}\) FLOPs</div>
+        </div>
+        <div>
+          <button class="reset-btn" id="phi-reset">Reset \(\varphi\)</button>
+        </div>
+      </div>
+      <div class="plot-row">
+        <div>
+          <div class="plot-title"><strong>Iso-FLOPs curves at selected \(C\)</strong></div>
+          <div id="phi-plot" class="plot"></div>
+        </div>
+        <div>
+          <div class="plot-title"><strong>Law vs. empirical minima across \(C\)</strong></div>
+          <div id="fit-plot" class="plot"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="interpretation-note">
+      <strong>Note on interpretation.</strong> Dragging \(\varphi\) here holds the other coefficients (\(A, \alpha, B, \beta, E\)) fixed at the free-\(\varphi\) fit values, so the lines show a pure slice through the loss landscape along the \(\varphi\) axis. This is useful for intuition, but it is <em>not</em> a counterfactual: a dataset consistent with a different \(\varphi\) would, in general, shift \(A, \alpha, B, \beta, E\) as well, since the six coefficients are jointly identified from the same residuals. The paper's teaser instead overlays a full refit at the restricted \(\varphi{=}1\), re-optimising \(A, \alpha, B, \beta, E\) under that constraint. The slider visualisation here therefore overstates how smoothly the law degrades as \(\varphi\) moves away from the point estimate. Empirical minima (crosses) are parabolic fits in \(\log N\) through each \((r, C)\) cell across the 116 training runs.
+    </p>
+  </section>
+
+  <section class="prose">
+    <h3 class="section-title">\(\Delta\varphi\) as a measurement tool</h3>
+    <p>
+      The fitted \(\varphi = 0.46\) reflects our baseline recipe. It is not a fundamental property of a looped architecture, and recipe or architecture changes can move it. The useful question is then: <em>does an intervention raise \(\varphi\)?</em> Raw validation loss cannot answer this on its own. A method can lower the loss simply by trading per-token training compute for more tokens at fixed budget (a token-side gain) or by raising the per-recurrence capacity of the shared block (an architecture-side gain). \(\Delta\varphi\) separates the two.
+    </p>
+    <p>
+      We demonstrate this on two probes. Each rerun the iso-FLOPs grid for \(r \in \{2, 4, 8\}\) at our four lower budgets, reuses the unchanged \(r{=}1\) runs, and refits the joint law:
+    </p>
+    <ul>
+      <li>
+        <strong>Truncated BPTT</strong> backpropagates gradients through only the last \(\lceil r/2 \rceil\) recurrences, saving \({\sim}30\%\) of per-token training FLOPs. Validation loss drops across all looped runs, but \(\varphi\) <em>falls</em> from \(0.46\) to \(0.38\). The early loops no longer receive an accurate learning signal, so each shared parameter absorbs less. The compute-optimal allocation widens and per-token inference cost rises. What looks like a methodological win is a token-budget reallocation in disguise.
+      </li>
+      <li>
+        <strong>Hyperconnections</strong> <em>[<a href="https://arxiv.org/abs/2409.19606">Zhu et al. 2025</a>]</em> replace the linear input injection with \(K{=}2\) parallel residual lanes mixed across loops. Validation loss drops <em>and</em> \(\varphi\) rises from \(0.46\) to \(0.65\). The \(r{=}2\) architecture even matches the non-looped \(r{=}1\) baseline at some budgets. The compute-optimum narrows, lowering per-token inference FLOPs. A genuine architectural improvement on the capacity channel.
+      </li>
+    </ul>
+    <p>
+      Both probes lower loss but only one raises \(\varphi\). We therefore propose \(\Delta\varphi\) as a standard report alongside validation loss for looped LM recipe and architecture changes, so future work can credit interventions to the channel that actually produced the gain. Probing it is cheap: \({\sim}20\) runs per architecture totals \({\sim}5 \times 10^{19}\) FLOPs. Other interventions worth quantifying include shrinking the shared fraction, per-token adaptive compute, retrofitting from pretrained non-looped models, and diffusion-style training objectives. All are compatible with our joint-law framework.
+    </p>
+  </section>
+
+  <section id="BibTeX">
+    <div class="bibtex-header">
+      <h3 class="section-title" style="text-align: left;">BibTeX</h3>
+      <button id="bibtex-copy" class="copy-btn" type="button">Copy</button>
+    </div>
+<pre class="bibtex"><code id="bibtex-content">@misc{schwethelm2026isodepthscaling,
+      title={How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models},
+      author={Kristian Schwethelm and Daniel Rueckert and Georgios Kaissis},
+      year={2026},
+      eprint={2604.21106},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2604.21106},
+}</code></pre>
+  </section>
+
+  <footer>
+    <a href="https://github.com/kschwethelm/looped-lm-scaling">github.com/kschwethelm/looped-lm-scaling</a>
+  </footer>
+
+</main>
+
+<script>
+// Fitted joint-law coefficients (corrected fit, results/corrected_phi_fit.json).
+const FIT = { A: 28.027, alpha: 0.19924, B: 915.82, beta: 0.36863, E: 1.56773, phi_fit: 0.459 };
+const R_VALUES = [1, 2, 4, 8];
+const R_COLORS = {1: "#1f77b4", 2: "#2ca02c", 4: "#ff7f0e", 8: "#d62728"};
+const R_LABEL = {1: "r = 1 (non-looped)", 2: "r = 2", 4: "r = 4", 8: "r = 8"};
+
+// Per-r width interpolators: for each r, a table over model size s containing
+// log_s, log_N_once(s), log_n_block(s), log_F(s, r), log_N(s, r). Sampled at the
+// 11 architecture widths in the sweep. N_rec = (16 / r) * n_block. Decomposition
+// and tables produced by dev/isoflops_report/plots/fit_corrected_phi.py.
+const WI = {"1": {"log_s": [1.791759469228055, 2.0794415416798357, 2.302585092994046, 2.4849066497880004, 2.6390573296152584, 2.772588722239781, 2.8903717578961645, 2.995732273553991, 3.1780538303479458, 3.332204510175204, 3.5263605246161616], "log_N_once": [15.825974383321821, 16.40119709179565, 16.847399322963188, 17.211985851575154, 17.5202467914293, 17.787279260755874, 18.02282175238242, 18.233523919548766, 18.598138736245467, 18.90641988334459, 19.294710510251953], "log_n_block": [14.3742357531664, 14.949490080000196, 15.395711285997486, 15.760310466085425, 16.068580443486766, 16.33561969139961, 16.571167455512306, 16.781873840826584, 17.146494985010232, 17.454780651937625, 17.8430760647224], "log_F": [19.97893061961703, 20.405495622177344, 20.7505891325953, 21.041574102939954, 21.29368025212406, 21.51648457123057, 21.716221269755977, 21.897294764899275, 22.215765356912616, 22.489741685639967, 22.840376407771096], "log_N": [17.382390499564018, 17.957638047103906, 18.403855184787986, 18.768451652360028, 19.076719692099577, 19.343757486683796, 19.579304120381025, 19.79000960133221, 20.15462938892001, 20.462914086812745, 20.85120847352665]}, "2": {"log_s": [1.791759469228055, 2.0794415416798357, 2.302585092994046, 2.4849066497880004, 2.6390573296152584, 2.772588722239781, 2.8903717578961645, 2.995732273553991, 3.1780538303479458, 3.332204510175204, 3.5263605246161616], "log_N_once": [15.825974383321821, 16.40119709179565, 16.847399322963188, 17.211985851575154, 17.5202467914293, 17.787279260755874, 18.02282175238242, 18.233523919548766, 18.598138736245467, 18.90641988334459, 19.294710510251953], "log_n_block": [14.3742357531664, 14.949490080000196, 15.395711285997486, 15.760310466085425, 16.068580443486766, 16.33561969139961, 16.571167455512306, 16.781873840826584, 17.146494985010232, 17.454780651937625, 17.8430760647224], "log_F": [19.98635483894529, 20.41410132710715, 20.760079810069126, 21.051777903886446, 21.304531284858264, 21.52782021508049, 21.727933679437978, 21.909369942729864, 22.228431530202073, 22.502834634297056, 22.853958797137015], "log_N": [16.88537320342111, 17.46061700092169, 17.90683188815563, 18.271426855249796, 18.579693823132352, 18.846730813776194, 19.082276822158235, 19.292981802839485, 19.65760083999274, 19.96588500183902, 20.35417882095454]}, "4": {"log_s": [1.791759469228055, 2.0794415416798357, 2.302585092994046, 2.4849066497880004, 2.6390573296152584, 2.772588722239781, 2.8903717578961645, 2.995732273553991, 3.1780538303479458, 3.332204510175204, 3.5263605246161616], "log_N_once": [15.825974383321821, 16.40119709179565, 16.847399322963188, 17.211985851575154, 17.5202467914293, 17.787279260755874, 18.02282175238242, 18.233523919548766, 18.598138736245467, 18.90641988334459, 19.294710510251953], "log_n_block": [14.3742357531664, 14.949490080000196, 15.395711285997486, 15.760310466085425, 16.068580443486766, 16.33561969139961, 16.571167455512306, 16.781873840826584, 17.146494985010232, 17.454780651937625, 17.8430760647224], "log_F": [19.993724345193364, 20.422633605319003, 20.769481260743373, 21.061949911364223, 21.3152658355014, 21.538984569894538, 21.73954668968839, 21.921301048605592, 22.240917353749804, 22.515741716158207, 22.867359174597983], "log_N": [16.486757345888012, 17.061995324165135, 17.508206719176336, 17.872799357835, 18.181064662408733, 18.448100405494063, 18.683645443507242, 18.89434964786469, 19.25896752048438, 19.56725085048581, 19.95554378879249]}, "8": {"log_s": [1.791759469228055, 2.0794415416798357, 2.302585092994046, 2.4849066497880004, 2.6390573296152584, 2.772588722239781, 2.8903717578961645, 2.995732273553991, 3.1780538303479458, 3.332204510175204, 3.5263605246161616], "log_N_once": [15.825974383321821, 16.40119709179565, 16.847399322963188, 17.211985851575154, 17.5202467914293, 17.787279260755874, 18.02282175238242, 18.233523919548766, 18.598138736245467, 18.90641988334459, 19.294710510251953], "log_n_block": [14.3742357531664, 14.949490080000196, 15.395711285997486, 15.760310466085425, 16.068580443486766, 16.33561969139961, 16.571167455512306, 16.781873840826584, 17.146494985010232, 17.454780651937625, 17.8430760647224], "log_F": [20.008281961777293, 20.439482819955597, 20.78811680926603, 21.081918823268772, 21.3363411427408, 21.5610327071163, 21.762340412898325, 21.94477399436141, 22.26543082650501, 22.541099078345813, 22.89364437361835], "log_N": [16.205877930726032, 16.781110168650205, 17.227318118738445, 17.591908460485396, 17.900172124262706, 18.1672066366713, 18.402750717444395, 18.613454155980126, 18.97807087981781, 19.286353389224352, 19.67464545863287]}};
+const EMPIRICAL = {"noloop": {"C": [4.64e+17, 1e+18, 2.15e+18, 4.64e+18, 1e+19, 2.15e+19], "L": [2.8522911954991343, 2.718431339420647, 2.604769332667054, 2.4976328803402374, 2.4013711712431096, 2.3087943170760354], "N": [67800356.36570223, 108947505.55739821, 166600375.25127083, 253251356.96185878, 353365903.1650416, 544939137.3905283]}, "loop2": {"C": [4.64e+17, 1e+18, 2.15e+18, 4.64e+18, 1e+19, 2.15e+19], "L": [2.9136980992686325, 2.7737983700206748, 2.64515820210967, 2.5336934529406783, 2.43121044011205, 2.338866383760422], "N": [38242361.349288754, 63186383.97366107, 101320457.00459671, 161693393.36046174, 253729994.50422528, 381108164.4865228]}, "loop": {"C": [4.64e+17, 1e+18, 2.15e+18, 4.64e+18, 1e+19, 2.15e+19], "L": [2.935720253909892, 2.7963291737295037, 2.6706202464670454, 2.5590913325267337, 2.4582285840665783, 2.359908373645247], "N": [28102936.859344147, 45287636.96220977, 71622030.30240332, 118677054.85115165, 183437985.3885379, 305815134.63584906]}, "loop8": {"C": [4.64e+17, 1e+18, 2.15e+18, 4.64e+18, 1e+19, 2.15e+19], "L": [2.9767858798231863, 2.8380851309025132, 2.708920843926787, 2.5976845906460007, 2.494992190550871, 2.4021002811413297], "N": [22610503.96943367, 39232872.182765394, 65349432.27789292, 96756236.33037147, 155473312.86114746, 243090367.67767406]}};
+
+function linInterp(x, xs, ys) {
+  if (x <= xs[0]) {
+    const t = (x - xs[0]) / (xs[1] - xs[0]);
+    return ys[0] + t * (ys[1] - ys[0]);
+  }
+  const n = xs.length;
+  if (x >= xs[n - 1]) {
+    const t = (x - xs[n - 2]) / (xs[n - 1] - xs[n - 2]);
+    return ys[n - 2] + t * (ys[n - 1] - ys[n - 2]);
+  }
+  let lo = 0, hi = n - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (xs[mid] <= x) lo = mid; else hi = mid;
+  }
+  const t = (x - xs[lo]) / (xs[hi] - xs[lo]);
+  return ys[lo] + t * (ys[hi] - ys[lo]);
+}
+
+function sampleArch(r, log_s) {
+  const t = WI[String(r)];
+  const log_N_once = linInterp(log_s, t.log_s, t.log_N_once);
+  const log_n_block = linInterp(log_s, t.log_s, t.log_n_block);
+  const log_F = linInterp(log_s, t.log_s, t.log_F);
+  const N_once = Math.exp(log_N_once);
+  const n_block = Math.exp(log_n_block);
+  const N_rec = (16.0 / r) * n_block;
+  const F = Math.exp(log_F);
+  const N_total = N_once + N_rec;
+  return { N_once, N_rec, F, N_total };
+}
+
+function lossPred(N_once, N_rec, D, r, phi) {
+  const N_eff = N_once + Math.pow(r, phi) * N_rec;
+  return FIT.E + FIT.A * Math.pow(N_eff, -FIT.alpha) + FIT.B * Math.pow(D, -FIT.beta);
+}
+
+function isoFlopsCurve(r, C, phi, nPoints) {
+  const t = WI[String(r)];
+  const lo = t.log_s[0] - 0.4;
+  const hi = t.log_s[t.log_s.length - 1] + 0.4;
+  const xs = [], ys = [];
+  let bestL = Infinity, bestN = null, bestLogS = null;
+  for (let i = 0; i < nPoints; i++) {
+    const log_s = lo + (hi - lo) * i / (nPoints - 1);
+    const a = sampleArch(r, log_s);
+    const D = C / a.F;
+    if (D < 1e6) continue;
+    const L = lossPred(a.N_once, a.N_rec, D, r, phi);
+    xs.push(a.N_total);
+    ys.push(L);
+    if (L < bestL) { bestL = L; bestN = a.N_total; bestLogS = log_s; }
+  }
+  return { xs, ys, bestL, bestN, bestLogS };
+}
+
+function optimalLoss(r, C, phi) {
+  // Golden-section search over log_s for robust minimum.
+  const t = WI[String(r)];
+  let a = t.log_s[0] - 0.4;
+  let b = t.log_s[t.log_s.length - 1] + 0.4;
+  const phiInv = (Math.sqrt(5) - 1) / 2;
+  let c = b - phiInv * (b - a);
+  let d = a + phiInv * (b - a);
+  const f = (log_s) => {
+    const ar = sampleArch(r, log_s);
+    const D = C / ar.F;
+    if (D < 1e6) return 1e9;
+    return lossPred(ar.N_once, ar.N_rec, D, r, phi);
+  };
+  let fc = f(c), fd = f(d);
+  for (let i = 0; i < 60; i++) {
+    if (fc < fd) { b = d; d = c; fd = fc; c = b - phiInv * (b - a); fc = f(c); }
+    else         { a = c; c = d; fc = fd; d = a + phiInv * (b - a); fd = f(d); }
+    if (b - a < 1e-4) break;
+  }
+  const log_s_opt = 0.5 * (a + b);
+  const ar = sampleArch(r, log_s_opt);
+  const D = C / ar.F;
+  return { L: lossPred(ar.N_once, ar.N_rec, D, r, phi), N: ar.N_total, D, log_s: log_s_opt };
+}
+
+function makeIsoFlopsTraces(phi, C) {
+  const traces = [];
+  const optima = [];
+  for (const r of R_VALUES) {
+    const { xs, ys } = isoFlopsCurve(r, C, phi, 120);
+    traces.push({
+      x: xs, y: ys, mode: "lines", name: R_LABEL[r],
+      line: { color: R_COLORS[r], width: 2.5 },
+      hovertemplate: `<b>${R_LABEL[r]}</b><br>N = %{x:.2s}<br>L = %{y:.4f}<extra></extra>`
+    });
+    const opt = optimalLoss(r, C, phi);
+    optima.push({ r, N: opt.N, L: opt.L });
+  }
+  traces.push({
+    x: optima.map(o => o.N), y: optima.map(o => o.L),
+    mode: "markers", showlegend: false,
+    marker: { color: optima.map(o => R_COLORS[o.r]), size: 10, symbol: "diamond",
+              line: { color: "black", width: 1 } },
+    hovertemplate: `<b>compute-optimal (r = %{text})</b><br>N* = %{x:.2s}<br>L* = %{y:.4f}<extra></extra>`,
+    text: optima.map(o => o.r)
+  });
+  return { traces, optima };
+}
+
+function makeFitTraces(phi) {
+  const traces = [];
+  const Cs = [];
+  const nC = 60, logCmin = 17.5, logCmax = 19.6;
+  for (let i = 0; i < nC; i++) {
+    Cs.push(Math.pow(10, logCmin + (logCmax - logCmin) * i / (nC - 1)));
+  }
+  for (const r of R_VALUES) {
+    traces.push({
+      x: Cs, y: Cs.map(C => optimalLoss(r, C, phi).L),
+      mode: "lines", name: R_LABEL[r],
+      line: { color: R_COLORS[r], width: 2 },
+      legendgroup: `r${r}`,
+      hovertemplate: `<b>law, ${R_LABEL[r]}</b><br>C = %{x:.2e}<br>L* = %{y:.4f}<extra></extra>`
+    });
+  }
+  const archToR = { noloop: 1, loop2: 2, loop: 4, loop8: 8 };
+  for (const arch of ["noloop", "loop2", "loop", "loop8"]) {
+    const r = archToR[arch];
+    const emp = EMPIRICAL[arch];
+    if (!emp) continue;
+    traces.push({
+      x: emp.C, y: emp.L,
+      mode: "markers", showlegend: false,
+      marker: { color: R_COLORS[r], size: 10, symbol: "x-thin",
+                line: { color: R_COLORS[r], width: 2 } },
+      legendgroup: `r${r}`,
+      hovertemplate: `<b>empirical (${R_LABEL[r]})</b><br>C = %{x:.2e}<br>L* = %{y:.4f}<extra></extra>`
+    });
+  }
+  return traces;
+}
+
+function plotTheme() {
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return dark ? {
+    plot_bgcolor: "#0a0b0d",
+    paper_bgcolor: "#11141a",
+    font: { color: "#e8e6e0" },
+    gridcolor: "#2a2e36",
+    legend_bg: "rgba(17,20,26,0.85)",
+    optimum_line: "#e8e6e0",
+    cline: "#a0a6b0"
+  } : {
+    plot_bgcolor: "#ffffff",
+    paper_bgcolor: "#fafbfc",
+    font: { color: "#111111" },
+    gridcolor: "#e5e5e5",
+    legend_bg: "rgba(255,255,255,0.85)",
+    optimum_line: "#111111",
+    cline: "#888888"
+  };
+}
+
+function updatePlot() {
+  const phi = parseFloat(document.getElementById("phi-slider").value);
+  const logC = parseFloat(document.getElementById("c-slider").value);
+  const C = Math.pow(10, logC);
+  document.getElementById("phi-value").textContent = phi.toFixed(3);
+  document.getElementById("c-value").textContent = C.toExponential(1);
+  const fitLabel = document.getElementById("phi-fit-label");
+  if (fitLabel) fitLabel.textContent = FIT.phi_fit.toFixed(2);
+
+  const th = plotTheme();
+  const { traces, optima } = makeIsoFlopsTraces(phi, C);
+  const layoutLeft = {
+    xaxis: { title: "Total parameters N", type: "log", tickformat: ".0s", range: [7.0, 9.8],
+             gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
+    yaxis: { title: "Validation loss (nats)", range: [2.2, 3.2],
+             gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
+    shapes: optima.map(o => ({
+      type: "line", x0: o.N, x1: o.N, y0: 2.2, y1: o.L,
+      line: { color: R_COLORS[o.r], width: 1, dash: "dot" }
+    })),
+    margin: { l: 55, r: 20, t: 10, b: 50 },
+    legend: { x: 0.98, y: 0.98, xanchor: "right", yanchor: "top", bgcolor: th.legend_bg },
+    hovermode: "closest",
+    plot_bgcolor: th.plot_bgcolor, paper_bgcolor: th.paper_bgcolor, font: th.font
+  };
+  Plotly.react("phi-plot", traces, layoutLeft, { displayModeBar: false, responsive: true });
+
+  const fitTraces = makeFitTraces(phi);
+  const layoutRight = {
+    xaxis: { title: "Training compute C (FLOPs)", type: "log", tickformat: ".0e", range: [17.4, 19.7],
+             gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
+    yaxis: { title: "Compute-optimal loss L* (nats)", range: [2.25, 3.05],
+             gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
+    shapes: [{ type: "line", x0: C, x1: C, y0: 2.25, y1: 3.05,
+               line: { color: th.cline, width: 1, dash: "dash" } }],
+    margin: { l: 55, r: 20, t: 10, b: 50 },
+    legend: { x: 0.98, y: 0.98, xanchor: "right", yanchor: "top", bgcolor: th.legend_bg },
+    hovermode: "closest",
+    plot_bgcolor: th.plot_bgcolor, paper_bgcolor: th.paper_bgcolor, font: th.font
+  };
+  Plotly.react("fit-plot", fitTraces, layoutRight, { displayModeBar: false, responsive: true });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("phi-slider").addEventListener("input", updatePlot);
+  document.getElementById("c-slider").addEventListener("input", updatePlot);
+  document.getElementById("phi-reset").addEventListener("click", function () {
+    document.getElementById("phi-slider").value = FIT.phi_fit;
+    updatePlot();
+  });
+  // Re-render plots when system theme changes.
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePlot);
+  }
+  const copyBtn = document.getElementById("bibtex-copy");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      const text = document.getElementById("bibtex-content").textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copied";
+        copyBtn.classList.add("copied");
+        setTimeout(() => {
+          copyBtn.textContent = "Copy";
+          copyBtn.classList.remove("copied");
+        }, 1500);
+      });
+    });
+  }
+  updatePlot();
+});
+</script>
+
+</body>
+</html>
