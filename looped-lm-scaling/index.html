@@ -374,7 +374,7 @@
     </div>
     <div class="news-item">
       <span class="news-date">2026-04-27</span>
-      <p><strong>Version 2.</strong> Added truncated-BPTT and hyperconnections probes, new discussion sections on \(\varphi\) as decision metric and inference cost.</p>
+      <p><strong>Version 2.</strong> Added truncated-BPTT and hyperconnections case studies, new discussion sections on \(\varphi\) as decision metric and inference cost.</p>
     </div>
   </section>
 
@@ -382,13 +382,13 @@
     <div class="box accent prose">
       <h3 class="section-title" style="margin-bottom: 16px;">Abstract</h3>
       <p>
-        We measure how much one extra recurrence is worth to a looped (depth-recurrent) language model, in equivalent unique parameters. From an iso-depth sweep of 116 pretraining runs across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
+        We measure how much one recurrence is worth to a looped (depth-recurrent) transformer, in equivalent unique parameters. From an iso-depth pretraining sweep across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
       </p>
       <p class="center-eq">
         \( L = E + A\,(N_\text{once} + r^{\varphi} N_\text{rec})^{-\alpha} + B\,D^{-\beta} \)
       </p>
       <p>
-        and recover a new <em>recurrence-equivalence exponent</em> \(\varphi = 0.46\). Intuitively, \(\varphi\) tells us whether looping a block \(r\) times is equivalent in validation loss to \(r\) unique blocks of a non-looped model (full equivalence, \(\varphi{=}1\)) or to a single block run repeatedly with no capacity gain (\(\varphi{=}0\)). Our \(\varphi = 0.46\) sits in between, so each additional recurrence predictably increases validation loss at matched training compute. For example, at \(r{=}4\) a 410M looped model performs on par with a 580M non-looped model, but incurs the training cost of a 1B non-looped one. We demonstrate the utility of \(\varphi\) as a measurement tool on two probes. <em>Truncated backpropagation</em> lowers \(\varphi\) to \(0.38\), indicating that the loop mechanism is poorly trained under truncation, even though validation loss decreases. Conversely, <em>hyperconnections</em> raise \(\varphi\) to \(0.65\), a genuine capacity gain. Our method applies to any looped LM and separates true loop improvements from token-budget gains.
+        and measure a <em>recurrence-equivalence exponent</em> \(\varphi = 0.46\). Intuitively, \(\varphi\) tells us whether looping a block \(r\) times is equivalent in validation loss to \(r\) unique blocks of a non-looped model (full equivalence, \(\varphi{=}1\)) or to a single block run repeatedly with no capacity gain (\(\varphi{=}0\)). Our \(\varphi = 0.46\) sits in between, so replacing unique blocks with shared recurrences <em>increases</em> validation loss at matched training compute. For example, at \(r{=}4\) a 410M looped model performs on par with a 580M non-looped model, but incurs the training cost of a 1B non-looped one. We demonstrate the utility of \(\varphi\) as a diagnostic tool on two case studies: commonly used <em>truncated backpropagation</em> lowers \(\varphi\) to \(0.38\), indicating that the loop mechanism is poorly trained under truncation, even though validation loss decreases. Conversely, <em>hyperconnections</em> raise \(\varphi\) to \(0.65\), a genuine capacity gain. Our method separates true loop improvements from training-side gains, a distinction raw validation loss cannot make.
       </p>
     </div>
   </section>
@@ -459,12 +459,12 @@
   </section>
 
   <section class="prose">
-    <h3 class="section-title">\(\Delta\varphi\) as a measurement tool</h3>
+    <h3 class="section-title">\(\Delta\varphi\) as a diagnostic tool</h3>
     <p>
       The fitted \(\varphi = 0.46\) reflects our baseline recipe. It is not a fundamental property of a looped architecture, and recipe or architecture changes can move it. The useful question is then: <em>does an intervention raise \(\varphi\)?</em> Raw validation loss cannot answer this on its own. A method can lower the loss simply by trading per-token training compute for more tokens at fixed budget (a token-side gain) or by raising the per-recurrence capacity of the shared block (an architecture-side gain). \(\Delta\varphi\) separates the two.
     </p>
     <p>
-      We demonstrate this on two probes. Each rerun the iso-FLOPs grid for \(r \in \{2, 4, 8\}\) at our four lower budgets, reuses the unchanged \(r{=}1\) runs, and refits the joint law:
+      We demonstrate this on two case studies. Each reruns the iso-FLOPs grid for \(r \in \{2, 4, 8\}\) at our four lower budgets, reuses the unchanged \(r{=}1\) runs, and refits the joint law:
     </p>
     <ul>
       <li>
@@ -475,7 +475,7 @@
       </li>
     </ul>
     <p>
-      Both probes lower loss but only one raises \(\varphi\). We therefore propose \(\Delta\varphi\) as a standard report alongside validation loss for looped LM recipe and architecture changes, so future work can credit interventions to the channel that actually produced the gain. Probing it is cheap: \({\sim}20\) runs per architecture totals \({\sim}5 \times 10^{19}\) FLOPs. Other interventions worth quantifying include shrinking the shared fraction, per-token adaptive compute, retrofitting from pretrained non-looped models, and diffusion-style training objectives. All are compatible with our joint-law framework.
+      Both case studies lower loss but only one raises \(\varphi\). We therefore propose \(\Delta\varphi\) as a standard report alongside validation loss for looped LM recipe and architecture changes, so future work can credit interventions to the channel that actually produced the gain. Probing it is cheap: \({\sim}20\) runs per architecture totals \({\sim}5 \times 10^{19}\) FLOPs. Other interventions worth quantifying include shrinking the shared fraction, per-token adaptive compute, retrofitting from pretrained non-looped models, and diffusion-style training objectives. All are compatible with our joint-law framework.
     </p>
   </section>
 
