@@ -141,9 +141,13 @@
   .about a { color: var(--fg); border-bottom: 1px solid var(--line); }
   .about a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
-  /* latest */
-  .latest {
+  /* news */
+  .news {
     margin-top: 32px;
+    display: grid;
+    gap: 10px;
+  }
+  .news-item {
     padding: 14px 16px;
     border: 1px solid var(--line);
     border-radius: 8px;
@@ -154,15 +158,14 @@
     gap: 10px;
     flex-wrap: wrap;
   }
-  .latest .tag {
+  .news-item .tag {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--accent);
   }
-  .latest a { color: var(--fg); }
-  .latest a:hover { color: var(--accent); }
+  .news-item:hover { color: var(--accent); }
 
   /* selected work */
   .label {
@@ -243,17 +246,17 @@
     .links { justify-content: center; }
     .status { font-size: 12px; padding: 6px 12px; }
     .status-bar { top: 14px; }
-    .about, .latest, .label { margin-top: 48px; }
-    .latest { margin-top: 28px; }
+    .about, .news, .label { margin-top: 48px; }
+    .news { margin-top: 28px; }
   }
 </style>
 </head>
 <body>
 
 <div class="status-bar">
-  <a class="status" href="mailto:k.schwethelm@tum.de?subject=LLM%20Research%20Engineer%20Internship">
+  <a class="status" href="mailto:k.schwethelm@tum.de?subject=Internship">
     <span class="dot" aria-hidden="true"></span>
-    <span>open to <strong>LLM research engineer</strong> internships <span class="arrow">→</span></span>
+    <span>open to <strong>LLM research scientist/engineer</strong> positions <span class="arrow">→</span></span>
   </a>
 </div>
 
@@ -283,24 +286,44 @@
 
   <section class="about">
     <p>
-      I'm a PhD student at the <strong>Chair for AI in Medicine</strong> at TU Munich, supervised by Prof. <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ">Daniel Rückert</a> and Prof. <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ">Georgios Kaissis</a>. I work on pretraining and fine-tuning large language models, with a current focus on <em>looped (depth-recurrent) transformers</em>: how recurrence trades off against parameters, how to retrofit it into pretrained models, and how to induce latent reasoning via RL.
+      I'm a PhD student at the <strong>Chair for AI in Medicine</strong> at the Technical University of Munich, supervised by Prof. <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ">Daniel Rückert</a> and Prof. <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ">Georgios Kaissis</a>. I'm interested in the full LLM stack, from pretraining and reinforcement learning to efficient inference and practical applications.
     </p>
     <p>
-      In parallel, I work on LLM agents in clinical decision workflows and LLM text extraction from clinical reports. I've previously published on differentially private learning and hyperbolic neural networks. Best Graduate Award (M.Sc. Applied Computer Science, 2024) and Top Reviewer at NeurIPS 2025.
+      My current research is on looped, depth-recurrent transformers and benchmarking LLM agents in clinical decision workflows. I've previously published on differentially private learning and hyperbolic neural networks. Best Graduate Award (M.Sc. Applied Computer Science, 2024), NeurIPS 2026 Spotlight, NeurIPS 2025 Top Reviewer.
     </p>
   </section>
 
-  <a class="latest" href="looped-lm-scaling/">
-    <span class="tag">Latest · 2026</span>
-    <span>Preprint: <em>Iso-Depth Scaling Laws for Looped Language Models</em> →</span>
-  </a>
+  <section class="news" aria-label="News">
+    <a class="news-item" href="looped-lm-scaling/">
+      <span class="tag">NeurIPS · 2026</span>
+      <span>Spotlight: <em>How Much Is One Recurrence Worth?</em> →</span>
+    </a>
+    <a class="news-item" href="https://arxiv.org/abs/2608.09444">
+      <span class="tag">Preprint · 2026</span>
+      <span><em>Depth-adaptive Inference of Looped LMs via Continuous Depth Batching</em> →</span>
+    </a>
+  </section>
 
   <div class="label">Selected work</div>
 
   <article class="pub">
-    <div class="pub-venue preprint">Preprint '26</div>
+    <div class="pub-venue">Preprint '26</div>
+    <div class="pub-title"><a href="https://arxiv.org/abs/2608.09444">Depth-adaptive Inference of Looped Language Models via Continuous Depth Batching</a></div>
+    <div class="pub-authors">K. Schwethelm, D. Rückert, G. Kaissis</div>
+    <p class="pub-tldr">
+      We introduce the first efficient end-to-end inference method for depth-adaptive looped language models, which are taking less compute for "easy" tokens and more for "hard" tokens, translating per-token compute savings into practical inference speedups through continuous depth batching.
+    </p>
+    <div class="pub-links">
+      <a href="https://arxiv.org/abs/2608.09444">arxiv</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/kschwethelm/continuous-depth-batching">code</a>
+    </div>
+  </article>
+
+  <article class="pub">
+    <div class="pub-venue">NeurIPS '26 Spotlight ✨</div>
     <div class="pub-title"><a href="looped-lm-scaling/">How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models</a></div>
-    <div class="pub-authors">Schwethelm, Rückert, Kaissis</div>
+    <div class="pub-authors">K. Schwethelm, D. Rückert, G. Kaissis</div>
     <p class="pub-tldr">
       We measure the parameter-sharing cost of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: commonly used truncated backpropagation lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss.
     </p>
@@ -316,7 +339,7 @@
   <article class="pub">
     <div class="pub-venue">TMLR '25</div>
     <div class="pub-title"><a href="https://arxiv.org/abs/2403.07588">Visual Privacy Auditing with Diffusion Models</a></div>
-    <div class="pub-authors">Schwethelm, Kaiser, Knolle, Lockfisch, Rückert, Ziller</div>
+    <div class="pub-authors">K. Schwethelm, J. Kaiser, M. Knolle, S. Lockfisch, D. Rückert, A. Ziller</div>
     <p class="pub-tldr">
       Diffusion models, used as image priors, can reconstruct training data from differentially private models, exposing a gap between DP's theoretical bounds and what actually leaks in practice.
     </p>
@@ -330,7 +353,7 @@
   <article class="pub">
     <div class="pub-venue">SaTML '25</div>
     <div class="pub-title"><a href="https://arxiv.org/abs/2410.00542">Differentially Private Active Learning: Balancing Effective Data Selection and Privacy</a></div>
-    <div class="pub-authors">Schwethelm, Kaiser, Kuntzer, Yiğitsoy, Rückert, Kaissis</div>
+    <div class="pub-authors">K. Schwethelm, J. Kaiser, J. Kuntzer, M. Yiğitsoy, D. Rückert, G. Kaissis</div>
     <p class="pub-tldr">
       First framework for combining active learning with DP-SGD in standard supervised settings. We introduce step amplification to fix privacy budget waste and show which acquisition functions still work under DP, and which fall apart.
     </p>
@@ -346,7 +369,7 @@
   <article class="pub">
     <div class="pub-venue">ICLR '24</div>
     <div class="pub-title"><a href="https://arxiv.org/abs/2303.15919">Fully Hyperbolic Convolutional Neural Networks for Computer Vision</a></div>
-    <div class="pub-authors">Schwethelm*, Bdeir*, Landwehr</div>
+    <div class="pub-authors">K. Schwethelm*, A. Bdeir*, N. Landwehr</div>
     <p class="pub-tldr">
       HCNN: a CNN that lives entirely in hyperbolic space. We generalize the convolutional layer, batchnorm, and the classifier head to the Lorentz model, so the network leverages hyperbolic geometry at every layer instead of just the head.
     </p>

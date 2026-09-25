@@ -91,7 +91,12 @@
     font-weight: 400;
     color: var(--dim);
     line-height: 1.35;
-    margin-bottom: 32px;
+    margin-bottom: 12px;
+  }
+  .hero .venue {
+    color: var(--accent);
+    font-size: 14px;
+    margin-bottom: 24px;
   }
   .authors {
     font-size: 16px;
@@ -335,10 +340,11 @@
   <section class="hero">
     <h1>How Much Is One Recurrence Worth?</h1>
     <h2>Iso-Depth Scaling Laws for Looped Language Models</h2>
+    <p class="venue">✨ NeurIPS 2026 Spotlight ✨</p>
     <div class="authors">
-      <a href="https://scholar.google.com/citations?user=kschwethelm">Kristian Schwethelm</a><sup>1</sup>,
-      <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ">Daniel Rueckert</a><sup>1,2,3</sup>,
-      <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ">Georgios Kaissis</a><sup>4</sup>
+      <a href="https://scholar.google.com/citations?user=kschwethelm">K. Schwethelm</a><sup>1</sup>,
+      <a href="https://scholar.google.com/citations?user=H0O0WnQAAAAJ">D. Rückert</a><sup>1,2,3</sup>,
+      <a href="https://scholar.google.com/citations?user=g-WdmSgAAAAJ">G. Kaissis</a><sup>4</sup>
     </div>
     <div class="affiliations">
       <sup>1</sup>Technical University of Munich ·
@@ -354,10 +360,6 @@
       <a href="https://github.com/kschwethelm/looped-lm-scaling">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55 0-.27-.01-1-.02-1.96-3.2.69-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.96 10.96 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
         <span>code</span>
-      </a>
-      <a href="https://huggingface.co/collections/KristianS7/iso-depth-scaling-laws-for-looped-lms">
-        <span class="hf">🤗</span>
-        <span>models (soon)</span>
       </a>
       <a href="https://huggingface.co/datasets/KristianS7/prepacked-fineweb-edu-llama2-32K-T2048">
         <span class="hf">🤗</span>
@@ -484,9 +486,10 @@
       <h3 class="section-title" style="text-align: left;">BibTeX</h3>
       <button id="bibtex-copy" class="copy-btn" type="button">Copy</button>
     </div>
-<pre class="bibtex"><code id="bibtex-content">@misc{schwethelm2026isodepthscaling,
+<pre class="bibtex"><code id="bibtex-content">@inproceedings{schwethelm2026isodepthscaling,
       title={How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models},
       author={Kristian Schwethelm and Daniel Rueckert and Georgios Kaissis},
+      booktitle={Advances in Neural Information Processing Systems},
       year={2026},
       eprint={2604.21106},
       archivePrefix={arXiv},
