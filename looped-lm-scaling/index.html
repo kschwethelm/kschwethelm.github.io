@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="How Much Is One Recurrence Worth?" />
 <meta name="twitter:description" content="We measure the parameter-sharing cost of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: commonly used truncated backpropagation lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧐</text></svg>" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➰</text></svg>" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" />
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -353,9 +353,13 @@
       <sup>4</sup>Hasso Plattner Institute, University of Potsdam
     </div>
     <div class="links">
+      <a href="https://openreview.net/forum?id=iBvm5lCnAJ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 3H5v18h14V8z"/><path d="M14 3v5h5M8 12h8M8 16h8"/></svg>
+        <span>OpenReview</span>
+      </a>
       <a href="https://arxiv.org/abs/2604.21106">
         <i class="ai ai-arxiv" aria-hidden="true"></i>
-        <span>arXiv (v2)</span>
+        <span>arXiv</span>
       </a>
       <a href="https://github.com/kschwethelm/looped-lm-scaling">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55 0-.27-.01-1-.02-1.96-3.2.69-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.96 10.96 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.66.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
@@ -371,6 +375,10 @@
   <section class="narrow">
     <h3 class="section-title">News</h3>
     <div class="news-item">
+      <span class="news-date">2026-10-30</span>
+      <p><strong>NeurIPS 2026.</strong> Our paper was accepted as a spotlight.</p>
+    </div>
+    <div class="news-item">
       <span class="news-date">2026-04-28</span>
       <p><strong>Code release.</strong> The full architecture, training and evaluation pipelines are now available.</p>
     </div>
@@ -384,7 +392,7 @@
     <div class="box accent prose">
       <h3 class="section-title" style="margin-bottom: 16px;">Abstract</h3>
       <p>
-        We measure how much one recurrence is worth to a looped (depth-recurrent) transformer, in equivalent unique parameters. From an iso-depth pretraining sweep across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
+        We measure how much one recurrence is worth to a looped transformer, in equivalent unique parameters. From an iso-depth pretraining sweep across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
       </p>
       <p class="center-eq">
         \( L = E + A\,(N_\text{once} + r^{\varphi} N_\text{rec})^{-\alpha} + B\,D^{-\beta} \)
@@ -487,14 +495,11 @@
       <button id="bibtex-copy" class="copy-btn" type="button">Copy</button>
     </div>
 <pre class="bibtex"><code id="bibtex-content">@inproceedings{schwethelm2026isodepthscaling,
-      title={How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models},
-      author={Kristian Schwethelm and Daniel Rueckert and Georgios Kaissis},
-      booktitle={Advances in Neural Information Processing Systems},
-      year={2026},
-      eprint={2604.21106},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2604.21106},
+  title={How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models},
+  author={Kristian Schwethelm and Daniel Rueckert and Georgios Kaissis},
+  booktitle={The Fortieth Annual Conference on Neural Information Processing Systems},
+  year={2026},
+  url={https://openreview.net/forum?id=iBvm5lCnAJ}
 }</code></pre>
   </section>
 
