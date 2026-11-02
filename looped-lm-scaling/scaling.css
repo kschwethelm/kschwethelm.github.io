@@ -1,16 +1,25 @@
 .prose .center-eq { max-width: 100%; overflow-x: auto; padding-block: 4px; text-align: center; margin: 8px 0 14px; }
 
-/* schematic */
-figure {
-  margin: 28px auto;
-  max-width: 680px;
-  text-align: center;
-}
-figure img { width: 100%; height: auto; }
-.architecture-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 28px; }
-.architecture-figures figure { width: 100%; max-width: none; min-width: 0; margin: 0; }
-.architecture-figures figcaption { margin-bottom: 14px; color: var(--fg); font-size: 14px; font-weight: 500; }
-.architecture-figures .project-diagram { aspect-ratio: 450 / 276; }
+/* Explanations and figures */
+.scaling-diagram { width: 100%; min-width: 0; margin: 0; }
+.scaling-diagram figcaption { margin-top: 16px; color: var(--dim); font-size: 12px; line-height: 1.6; text-align: center; }
+.project-intro .intro-copy { font-size: 15px; line-height: 1.7; }
+.law-explanation { margin-top: 40px; }
+.law-box { margin-top: 28px; padding: 24px 28px; }
+.law-box h4 { margin-bottom: 14px; font-size: 17px; font-weight: 600; text-align: center; }
+.law-box .center-eq { margin-block: 20px; }
+.phi-reference { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-block: 24px; padding-block: 20px; border-block: 1px solid var(--line); }
+.phi-reference h5 { grid-column: 1 / -1; font-size: 15px; font-weight: 600; }
+.phi-reference p { margin: 0; padding: 16px 18px; border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 6px; background: color-mix(in srgb, var(--accent) 9%, var(--bg)); font-size: 14px; text-align: left !important; }
+.phi-reference strong { display: block; margin-bottom: 8px; }
+
+/* Main findings */
+.scaling-results { margin-bottom: 16px; }
+.scaling-results .project-card h4 { text-align: center; }
+.finding-figure img { display: block; width: 100%; height: auto; }
+.findings-takeaway { margin-top: 28px; text-align: center; font-weight: 600; }
+.finding-figure { width: 100%; margin: auto 0 0; padding-top: 12px; }
+.finding-figure figcaption { margin-top: 16px; color: var(--dim); font-size: 11px; line-height: 1.6; text-align: center; }
 
 /* interactive box */
 .interactive {
@@ -41,12 +50,6 @@ figure img { width: 100%; height: auto; }
   width: 100%;
   accent-color: var(--accent);
 }
-.control .help {
-  font-size: 11px;
-  color: var(--dim);
-  margin-top: 6px;
-}
-.control .help .fit { color: var(--accent); }
 .reset-btn {
   background: var(--bg);
   color: var(--fg);
@@ -65,24 +68,24 @@ figure img { width: 100%; height: auto; }
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-.plot-row .plot-title {
-  text-align: center;
-  font-size: 13px;
-  color: var(--dim);
-  font-weight: 500;
-  margin-bottom: 4px;
-}
+.plot-row > div { min-width: 0; }
 .plot-row .plot { width: 100%; height: 300px; }
+.prose .plot-description { margin: 12px 4px 0; font-size: 12px; line-height: 1.6; color: var(--dim); text-align: left; }
+.control input:focus-visible, .reset-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-.interpretation-note {
-  font-size: 13px;
-  color: var(--dim);
-  margin-top: 24px;
-}
 
 @media (max-width: 760px) {
-  .architecture-figures { grid-template-columns: 1fr; gap: 28px; }
   .controls { grid-template-columns: 1fr; gap: 16px; }
   .plot-row { grid-template-columns: 1fr; }
   .plot-row .plot { height: 280px; }
+}
+
+@media (max-width: 1000px) {
+  .scaling-results { grid-template-columns: 1fr; }
+  .finding-figure { max-width: 420px; margin-inline: auto; }
+}
+@media (max-width: 760px) {
+  .law-box { padding: 20px 16px; }
+  .phi-reference { grid-template-columns: 1fr; gap: 16px; }
+  .interactive { padding: 16px 10px; }
 }

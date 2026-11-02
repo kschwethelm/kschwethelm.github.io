@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>How Much Is One Recurrence Worth?</title>
 <link rel="canonical" href="https://kschwethelm.github.io/looped-lm-scaling/" />
-<meta name="description" content="We measure the capacity of parameters of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: truncated BPTT lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
+<meta name="description" content="We measure how much capacity a loop adds: four passes through a shared block are worth about 1.9 distinct blocks in our setup. Our scaling law also shows whether a change improves the loop itself or lowers loss by making training cheaper." />
 <meta name="keywords" content="looped transformer, depth-recurrent, scaling laws, language models, iso-depth, recurrence" />
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="How Much Is One Recurrence Worth?" />
 <meta property="og:title" content="How Much Is One Recurrence Worth? Iso-Depth Scaling Laws for Looped Language Models" />
-<meta property="og:description" content="We measure the capacity of parameters of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: truncated BPTT lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
+<meta property="og:description" content="We measure how much capacity a loop adds: four passes through a shared block are worth about 1.9 distinct blocks in our setup. Our scaling law also shows whether a change improves the loop itself or lowers loss by making training cheaper." />
 <meta property="og:url" content="https://kschwethelm.github.io/looped-lm-scaling/" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="How Much Is One Recurrence Worth?" />
-<meta name="twitter:description" content="We measure the capacity of parameters of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: truncated BPTT lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss." />
+<meta name="twitter:description" content="We measure how much capacity a loop adds: four passes through a shared block are worth about 1.9 distinct blocks in our setup. Our scaling law also shows whether a change improves the loop itself or lowers loss by making training cheaper." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➰</text></svg>" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" />
 <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
@@ -69,7 +69,8 @@
     <section class="narrow paper-summary" aria-labelledby="tldr-title">
       <div class="box accent prose">
         <h3 class="summary-title" id="tldr-title">TL;DR</h3>
-        <p>We measure the capacity of parameters of looped LMs with a scaling law exponent φ and use Δφ as a diagnostic: truncated BPTT lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss.</p>
+        <p>We measure the capacity of parameters of looped LMs with a scaling law exponent \(\varphi\) and use \(\Delta\varphi\) as a diagnostic: truncated BPTT lowers it (worse loop), hyperconnections raise it (real gain), even though both improve validation loss.
+          Model designers should make each loop worth its compute.</p>
         <details class="abstract-disclosure">
           <summary>
             <span class="abstract-show">Read full abstract</span>
@@ -79,114 +80,42 @@
           <div class="abstract-body">
             <h4 id="abstract-title">Abstract</h4>
             <p>
-              We measure how much one recurrence is worth to a looped transformer, in equivalent unique parameters. From an iso-depth pretraining sweep across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
+              We measure how much one recurrence is worth to a looped transformer, in equivalent unique parameters.
+              From an iso-depth pretraining sweep across recurrence counts \(r \in \{1, 2, 4, 8\}\) spanning \({\sim}50\times\) in training compute, we fit a joint scaling law
             </p>
             <p class="center-eq" tabindex="0" role="region" aria-label="Joint scaling law equation">
               \( L = E + A\,(N_\text{once} + r^{\varphi} N_\text{rec})^{-\alpha} + B\,D^{-\beta} \)
             </p>
             <p>
-              and measure a <em>recurrence-equivalence exponent</em> \(\varphi = 0.46\). Intuitively, \(\varphi\) tells us whether looping a block \(r\) times is equivalent in validation loss to \(r\) unique blocks of a non-looped model (full equivalence, \(\varphi{=}1\)) or to a single block run repeatedly with no capacity gain (\(\varphi{=}0\)). Our \(\varphi = 0.46\) sits in between, so replacing unique blocks with shared recurrences <em>increases</em> validation loss at matched training compute. For example, at \(r{=}4\) a 410M looped model performs on par with a 580M non-looped model, but incurs the training cost of a 1B non-looped one. We demonstrate the utility of \(\varphi\) as a diagnostic tool on two case studies: commonly used <em>truncated backpropagation</em> lowers \(\varphi\) to \(0.38\), indicating that the loop mechanism is poorly trained under truncation, even though validation loss decreases. Conversely, <em>hyperconnections</em> raise \(\varphi\) to \(0.65\), a genuine capacity gain. Our method separates true loop improvements from training-side gains, a distinction raw validation loss cannot make.
+              and measure a <em>recurrence-equivalence exponent</em> \(\varphi = 0.46\).
+              Intuitively, \(\varphi\) tells us whether looping a block \(r\) times is equivalent in validation loss to \(r\) unique blocks of a non-looped model (full equivalence, \(\varphi{=}1\)) or to a single block run repeatedly with no capacity gain (\(\varphi{=}0\)).
+              Our \(\varphi = 0.46\) sits in between, so replacing unique blocks with shared recurrences <em>increases</em> validation loss at matched training compute.
+              For example, at \(r{=}4\) a 410M looped model performs on par with a 580M non-looped model, but incurs the training cost of a 1B non-looped one.
+              We demonstrate the utility of \(\varphi\) as a diagnostic tool on two case studies: commonly used <em>truncated backpropagation</em> lowers \(\varphi\) to \(0.38\), indicating that the loop mechanism is poorly trained under truncation, even though validation loss decreases.
+              Conversely, <em>hyperconnections</em> raise \(\varphi\) to \(0.65\), a genuine capacity gain.
+              Our method separates true loop improvements from training-side gains, a distinction raw validation loss cannot make.
             </p>
           </div>
         </details>
       </div>
     </section>
 
+    <a class="paper-link chapter-link" href="#looped-transformer">See how it works <span aria-hidden="true">↓</span></a>
+
   </div>
 
   <section id="looped-transformer" class="chapter" aria-labelledby="looped-title">
     <h3 class="section-title" id="looped-title">What is a looped transformer?</h3>
-    <div class="chapter-content prose">
-      <p>
-        A looped transformer applies a shared block of layers \(r\) times per token, between unshared prelude and coda layers.
-        Each pass refines a latent representation that is fed back through an injection layer.
-      </p>
-      <p>
-        We keep effective depth fixed at 20 layers per token: \(r{=}1\) uses unique layers, while \(r{=}8\) reuses two recurrent layers across eight passes.
-        FLOPs per token stay constant, isolating the effect of parameter sharing and allowing us to measure how much capacity each recurrence adds.
-      </p>
-      <div class="architecture-figures">
-        <figure>
-          <figcaption>Iso-depth architecture family</figcaption>
-          <svg class="project-diagram" viewBox="0 0 450 276" width="450" height="276" role="img" aria-labelledby="architecture-title architecture-description">
-          <title id="architecture-title">Iso-depth architecture family</title>
-          <desc id="architecture-description">All four models use 20 transformer layers per token. The non-looped model uses 20 unique layers. The looped models use two prelude layers and two coda layers, with eight core layers run twice, four run four times, or two run eight times.</desc>
-          <defs>
-          <marker id="architecture-loop-arrow" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto" markerUnits="userSpaceOnUse"><path class="diagram-loop-tip" d="M 0 0 L 6 3 L 0 6 Z" /></marker>
-          </defs>
-          <text x="43" y="20">r = 1</text>
-          <text x="147" y="20">r = 2</text>
-          <text x="257" y="20">r = 4</text>
-          <text x="367" y="20">r = 8</text>
-          <g class="diagram-depth depth-1">
-          <rect class="diagram-box" x="8" y="34" width="70" height="232" rx="3" />
-          <text x="43.0" y="146.5">20 layers</text>
-          <text x="43.0" y="163.5">unshared</text>
-          </g>
-          <g>
-          <rect class="diagram-box" x="112" y="243" width="70" height="23" rx="3" />
-          <text x="147.0" y="259.5" class="diagram-small">2 prelude</text>
-          </g>
-          <g class="diagram-depth depth-4">
-          <rect class="diagram-box" x="112" y="221" width="70" height="20" rx="3" />
-          <text x="147.0" y="236.0" class="diagram-small">inject</text>
-          </g>
-          <g class="diagram-depth depth-2">
-          <rect class="diagram-box" x="112" y="121" width="70" height="98" rx="3" />
-          <text x="147.0" y="168.0" class="diagram-small">8 recur</text>
-          <text x="147.0" y="182.0" class="diagram-small">layers</text>
-          </g>
-          <g class="diagram-depth depth-3"><rect class="diagram-box" x="112" y="98" width="70" height="21" rx="3" /><text x="147" y="113">h<tspan baseline-shift="super" font-size="10">(t)</tspan></text></g>
-          <g>
-          <rect class="diagram-box" x="112" y="73" width="70" height="23" rx="3" />
-          <text x="147.0" y="89.5" class="diagram-small">2 coda</text>
-          </g>
-          <path class="diagram-loop" d="M 186 108.5 H 198 V 231 H 186" marker-end="url(#architecture-loop-arrow)" />
-          <text x="211" y="174.0" class="diagram-loop-label">×2</text>
-          <g>
-          <rect class="diagram-box" x="222" y="243" width="70" height="23" rx="3" />
-          <text x="257.0" y="259.5" class="diagram-small">2 prelude</text>
-          </g>
-          <g class="diagram-depth depth-4">
-          <rect class="diagram-box" x="222" y="221" width="70" height="20" rx="3" />
-          <text x="257.0" y="236.0" class="diagram-small">inject</text>
-          </g>
-          <g class="diagram-depth depth-2">
-          <rect class="diagram-box" x="222" y="169" width="70" height="50" rx="3" />
-          <text x="257.0" y="192.0" class="diagram-small">4 recur</text>
-          <text x="257.0" y="206.0" class="diagram-small">layers</text>
-          </g>
-          <g class="diagram-depth depth-3"><rect class="diagram-box" x="222" y="146" width="70" height="21" rx="3" /><text x="257" y="161">h<tspan baseline-shift="super" font-size="10">(t)</tspan></text></g>
-          <g>
-          <rect class="diagram-box" x="222" y="121" width="70" height="23" rx="3" />
-          <text x="257.0" y="137.5" class="diagram-small">2 coda</text>
-          </g>
-          <path class="diagram-loop" d="M 296 156.5 H 308 V 231 H 296" marker-end="url(#architecture-loop-arrow)" />
-          <text x="321" y="198.0" class="diagram-loop-label">×4</text>
-          <g>
-          <rect class="diagram-box" x="332" y="243" width="70" height="23" rx="3" />
-          <text x="367.0" y="259.5" class="diagram-small">2 prelude</text>
-          </g>
-          <g class="diagram-depth depth-4">
-          <rect class="diagram-box" x="332" y="221" width="70" height="20" rx="3" />
-          <text x="367.0" y="236.0" class="diagram-small">inject</text>
-          </g>
-          <g class="diagram-depth depth-2">
-          <rect class="diagram-box" x="332" y="193" width="70" height="26" rx="3" />
-          <text x="367.0" y="211.0" class="diagram-small">2 recur</text>
-          </g>
-          <g class="diagram-depth depth-3"><rect class="diagram-box" x="332" y="170" width="70" height="21" rx="3" /><text x="367" y="185">h<tspan baseline-shift="super" font-size="10">(t)</tspan></text></g>
-          <g>
-          <rect class="diagram-box" x="332" y="145" width="70" height="23" rx="3" />
-          <text x="367.0" y="161.5" class="diagram-small">2 coda</text>
-          </g>
-          <path class="diagram-loop" d="M 406 180.5 H 418 V 231 H 406" marker-end="url(#architecture-loop-arrow)" />
-          <text x="431" y="210.0" class="diagram-loop-label">×8</text>
-          </svg>
-        </figure>
-        <figure>
-          <figcaption>Looped next-token prediction</figcaption>
-          <svg class="project-diagram" viewBox="0 0 450 276" width="450" height="276" role="img" aria-labelledby="prediction-title prediction-description">
+    <div class="chapter-content project-intro">
+      <div class="intro-copy">
+        <p>A looped transformer reuses the same block of layers several times before predicting the next token.
+          Each pass, or <em>recurrence</em>, updates the model’s internal representation using the same parameters.</p>
+        <p>The <em>prelude</em> processes the input, the <em>recurrent core</em> runs \(r\) times, and the <em>coda</em> predicts the next token.
+          This lets a small model do more computation without adding new layers.</p>
+        <p><strong>We ask: How much of the capacity of a larger model can loop iterations recover?</strong></p>
+      </div>
+      <figure class="scaling-diagram">
+<svg class="project-diagram" viewBox="0 0 450 276" width="450" height="276" role="img" aria-labelledby="prediction-title prediction-description">
           <title id="prediction-title">Looped next-token prediction</title>
           <desc id="prediction-description">Each next-token prediction runs the prelude P once, the same recurrent block R r times, and the coda C once. Arrow labels h¹, h², and hʳ show hidden states after recurrent passes. The prompt What is 12 × 5? produces It is 60 over three predictions. Dashed arrows feed each sampled token into the next prediction.</desc>
           <defs>
@@ -308,45 +237,216 @@
           <path class="diagram-wire" d="M 370 251.5 H 385" marker-end="url(#prediction-flow-arrow)" />
           <text x="265" y="110.5" class="diagram-label">sampled token</text>
           </svg>
+        <figcaption>Every token uses the same recurrent block \(r\) times.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="capacity" class="chapter" aria-labelledby="capacity-title">
+    <h3 class="section-title" id="capacity-title">Problem: How much capacity does recurrence add?</h3>
+    <div class="chapter-content">
+      <div class="project-intro">
+        <div class="intro-copy">
+          <p>To measure the value of looping, we compare models that use roughly the same amount of compute per token.
+            Every model executes 20 layers: the non-looped model uses 20 distinct layers, while the looped models reuse a smaller core.</p>
+          <p>For example, four passes through a four-layer core give 16 layer computations.
+            Two prelude and two coda layers bring the total to 20.
+            <strong>More loops mean fewer unique parameters at roughly the same compute.</strong></p>
+          <p>We call this an <em>iso-depth</em> comparison.</p>
+        </div>
+        <figure class="scaling-diagram">
+<svg class="project-diagram" viewBox="0 0 450 276" width="450" height="276" role="img" aria-labelledby="architecture-title architecture-description">
+          <title id="architecture-title">Iso-depth architecture family</title>
+          <desc id="architecture-description">All four models use 20 transformer layers per token. The non-looped model uses 20 unique layers. The looped models use two prelude layers and two coda layers, with eight core layers run twice, four run four times, or two run eight times.</desc>
+          <defs>
+          <marker id="architecture-loop-arrow" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto" markerUnits="userSpaceOnUse"><path class="diagram-loop-tip" d="M 0 0 L 6 3 L 0 6 Z" /></marker>
+          </defs>
+          <text x="43" y="20">r = 1</text>
+          <text x="147" y="20">r = 2</text>
+          <text x="257" y="20">r = 4</text>
+          <text x="367" y="20">r = 8</text>
+          <g class="diagram-depth depth-1">
+          <rect class="diagram-box" x="8" y="34" width="70" height="232" rx="3" />
+          <text x="43.0" y="146.5">20 layers</text>
+          <text x="43.0" y="163.5">unshared</text>
+          </g>
+          <g>
+          <rect class="diagram-box" x="112" y="243" width="70" height="23" rx="3" />
+          <text x="147.0" y="259.5" class="diagram-small">2 prelude</text>
+          </g>
+          <g class="diagram-depth depth-4">
+          <rect class="diagram-box" x="112" y="221" width="70" height="20" rx="3" />
+          <text x="147.0" y="236.0" class="diagram-small">inject</text>
+          </g>
+          <g class="diagram-depth depth-2">
+          <rect class="diagram-box" x="112" y="121" width="70" height="98" rx="3" />
+          <text x="147.0" y="168.0" class="diagram-small">8 recur</text>
+          <text x="147.0" y="182.0" class="diagram-small">layers</text>
+          </g>
+          <g class="diagram-depth depth-3"><rect class="diagram-box" x="112" y="98" width="70" height="21" rx="3" /><text x="147" y="113">h<tspan baseline-shift="super" font-size="10">(t)</tspan></text></g>
+          <g>
+          <rect class="diagram-box" x="112" y="73" width="70" height="23" rx="3" />
+          <text x="147.0" y="89.5" class="diagram-small">2 coda</text>
+          </g>
+          <path class="diagram-loop" d="M 186 108.5 H 198 V 231 H 186" marker-end="url(#architecture-loop-arrow)" />
+          <text x="211" y="174.0" class="diagram-loop-label">×2</text>
+          <g>
+          <rect class="diagram-box" x="222" y="243" width="70" height="23" rx="3" />
+          <text x="257.0" y="259.5" class="diagram-small">2 prelude</text>
+          </g>
+          <g class="diagram-depth depth-4">
+          <rect class="diagram-box" x="222" y="221" width="70" height="20" rx="3" />
+          <text x="257.0" y="236.0" class="diagram-small">inject</text>
+          </g>
+          <g class="diagram-depth depth-2">
+          <rect class="diagram-box" x="222" y="169" width="70" height="50" rx="3" />
+          <text x="257.0" y="192.0" class="diagram-small">4 recur</text>
+          <text x="257.0" y="206.0" class="diagram-small">layers</text>
+          </g>
+          <g class="diagram-depth depth-3"><rect class="diagram-box" x="222" y="146" width="70" height="21" rx="3" /><text x="257" y="161">h<tspan baseline-shift="super" font-size="10">(t)</tspan></text></g>
+          <g>
+          <rect class="diagram-box" x="222" y="121" width="70" height="23" rx="3" />
+          <text x="257.0" y="137.5" class="diagram-small">2 coda</text>
+          </g>
+          <path class="diagram-loop" d="M 296 156.5 H 308 V 231 H 296" marker-end="url(#architecture-loop-arrow)" />
+          <text x="321" y="198.0" class="diagram-loop-label">×4</text>
+          <g>
+          <rect class="diagram-box" x="332" y="243" width="70" height="23" rx="3" />
+          <text x="367.0" y="259.5" class="diagram-small">2 prelude</text>
+          </g>
+          <g class="diagram-depth depth-4">
+          <rect class="diagram-box" x="332" y="221" width="70" height="20" rx="3" />
+          <text x="367.0" y="236.0" class="diagram-small">inject</text>
+          </g>
+          <g class="diagram-depth depth-2">
+          <rect class="diagram-box" x="332" y="193" width="70" height="26" rx="3" />
+          <text x="367.0" y="211.0" class="diagram-small">2 recur</text>
+          </g>
+          <g class="diagram-depth depth-3"><rect class="diagram-box" x="332" y="170" width="70" height="21" rx="3" /><text x="367" y="185">h<tspan baseline-shift="super" font-size="10">(t)</tspan></text></g>
+          <g>
+          <rect class="diagram-box" x="332" y="145" width="70" height="23" rx="3" />
+          <text x="367.0" y="161.5" class="diagram-small">2 coda</text>
+          </g>
+          <path class="diagram-loop" d="M 406 180.5 H 418 V 231 H 406" marker-end="url(#architecture-loop-arrow)" />
+          <text x="431" y="210.0" class="diagram-loop-label">×8</text>
+          </svg>
+          <figcaption>Same effective depth, different amounts of parameter sharing.</figcaption>
         </figure>
+      </div>
+      <div class="law-explanation prose">
+        <p>We use a <em>scaling study</em> to measure how much capacity shared parameters gain through looping.
+          We train 116 models across six compute budgets, varying model width and the number of loops.
+          Fitting a joint scaling law lets us separate the contributions of model size, training data, and recurrence.</p>
+        <div class="box law-box">
+          <h4>Method: Joint Scaling Law</h4>
+          <p>The key idea is an <em>effective parameter count</em>: we give shared parameters extra weight to account for the capacity gained by using them repeatedly.</p>
+          <p class="center-eq" tabindex="0" role="region" aria-label="Effective parameter count">
+            \( N_\text{eff} = N_\text{once} + r^{\varphi} N_\text{rec} \)
+          </p>
+          <p>\(N_\text{once}\) counts parameters used once, and \(N_\text{rec}\) counts the shared parameters.
+            Looping the shared block \(r\) times multiplies its contribution by \(r^\varphi\).</p>
+          <div class="phi-reference">
+            <h5>Interpreting \(\varphi\)</h5>
+            <p><strong>\(\varphi = 0\): no extra capacity</strong>
+              Looping adds computation without improving loss.
+              The loss matches that of a <em>parameter-matched</em> non-looped model, which requires less compute.</p>
+            <p><strong>\(\varphi = 1\): full equivalence</strong>
+              Looping contributes as much as \(r\) distinct blocks.
+              The loss matches that of a <em>compute-matched</em> non-looped model at the same training compute.</p>
+            <p><strong>\(\varphi &lt; 1\): extra loops reduce performance</strong>
+              At matched training compute, using extra loops of the shared block in place of distinct layers raises loss.</p>
+            <p><strong>\(\varphi &gt; 1\): extra loops improve performance</strong>
+              At matched training compute, using extra loops of the shared block in place of distinct layers lowers loss.</p>
+          </div>
+          <p>The full law combines this effective size with the number of training tokens \(D\):</p>
+          <p class="center-eq" tabindex="0" role="region" aria-label="Joint scaling law">
+            \( L = E + A\,(N_\text{once} + r^{\varphi} N_\text{rec})^{-\alpha} + B\,D^{-\beta} \)
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results" class="chapter" aria-labelledby="results-title">
+    <h3 class="section-title" id="results-title">Main findings</h3>
+    <div class="chapter-content">
+      <div class="blocks-heading">
+        <p class="blocks-heading-label">We make the following main findings:</p>
+      </div>
+      <div class="project-cards scaling-results">
+        <article class="project-card" aria-labelledby="capacity-result-title">
+          <h4 id="capacity-result-title">Does looping add capacity?</h4>
+          <p>We measure \(\varphi = 0.46\): looping increases the capacity of shared parameters, but each extra loop adds less capacity than a distinct block.
+            Four loops provide about 1.9 blocks’ worth of capacity.
+            At matched training compute, replacing distinct layers with extra loops therefore saves parameters but reduces performance.</p>
+          <figure class="finding-figure">
+            <picture>
+              <source srcset="static/images/capacity-dark.svg" media="(prefers-color-scheme: dark)" />
+              <img src="static/images/capacity.svg" width="360" height="310" alt="At 1, 2, 4, and 8 loops, relative compute per token stays near 1. Effective parameters fall to 1, 0.75, 0.58, and 0.47; unique parameters fall to 1, 0.61, 0.41, and 0.31." />
+            </picture>
+            <figcaption>Effective parameters with \(\varphi = 0.46\).</figcaption>
+          </figure>
+        </article>
+        <article class="project-card" aria-labelledby="diagnostic-result-title">
+          <h4 id="diagnostic-result-title">Is \(\varphi\) fixed?</h4>
+          <p>No, it can change with architecture and training recipe.
+            We propose \(\Delta\varphi\) as a diagnostic for loop capacity.
+            <strong>Truncated BPTT</strong> saves about 30% of training compute per token but produces weaker loops (\(\varphi = 0.38\)).
+            <strong>Hyperconnections</strong> improve information flow and produce stronger loops (\(\varphi = 0.65\)).
+            Both methods lower loss.</p>
+          <figure class="finding-figure">
+            <picture>
+              <source srcset="static/images/recurrence-diagnostics-dark.svg" media="(prefers-color-scheme: dark)" />
+              <img src="static/images/recurrence-diagnostics.svg" width="360" height="310" alt="Paired validation-loss curves for four-loop models at 4.64e18 training FLOPs. Truncated BPTT and hyperconnections both lower the fitted minimum relative to the baseline. Each panel shows measured points, fitted curves, and the unchanged non-looped optimum." />
+            </picture>
+            <figcaption>Measured validation loss curves.</figcaption>
+          </figure>
+        </article>
+        <article class="project-card" aria-labelledby="downstream-result-title">
+          <h4 id="downstream-result-title">And reasoning?</h4>
+          <p>We fit \(\varphi\) to downstream task performance to obtain a task-specific \(\varphi_\text{axis}\).
+            <strong>Knowledge</strong> (\(0.58\)) and <strong>reading</strong> (\(0.71\)) yield larger values than validation loss (\(0.46\)).
+            <strong>Math and reasoning</strong> show no consistent gains beyond variation across training runs at our budgets.
+            Future work should measure these tasks at larger compute budgets.</p>
+          <figure class="finding-figure">
+            <picture>
+              <source srcset="static/images/task-specific-phi-dark.svg" media="(prefers-color-scheme: dark)" />
+              <img src="static/images/task-specific-phi.svg" width="360" height="310" alt="Fitted phi values: validation loss 0.46, knowledge 0.58, and reading 0.71. Math and reasoning have no reliable fit at these compute budgets." />
+            </picture>
+            <figcaption>Downstream performance.</figcaption>
+          </figure>
+        </article>
+      </div>
+      <p class="findings-takeaway">Make each loop worth its compute.</p>
+      <div class="paper-cta">
+        <a class="paper-link" href="https://openreview.net/forum?id=iBvm5lCnAJ">Read the full paper <span aria-hidden="true">↗</span></a>
       </div>
     </div>
   </section>
 
   <section id="scaling-law" class="chapter" aria-labelledby="scaling-title">
-    <h3 class="section-title" id="scaling-title">What does \(\varphi\) mean? Try it.</h3>
+    <h3 class="section-title" id="scaling-title">Explore the scaling law</h3>
     <div class="chapter-content prose">
-      <p>
-        The exponent \(\varphi\) measures how much capacity shared parameters gain from recurrence: \(\varphi{=}0\) means no extra capacity, and \(\varphi{=}1\) means full equivalence to unique blocks.
-        Our fit gives \(\varphi = 0.46\), so shared recurrences recover part of that capacity but increase validation loss at matched training compute.
-      </p>
-      <p>
-        Left: loss versus model size at the selected compute budget, with diamonds marking the compute-optimal allocations.
-        Right: predicted compute-optimal loss across budgets, with crosses showing empirical minima from 116 runs.
-        The dashed line marks the selected budget; drag the sliders to explore how \(\varphi\) and compute affect the predictions.
-      </p>
-
+      <p>What would happen if each loop added more capacity?
+        Increase \(\varphi\) to bring the looped models closer to the non-looped baseline.
+        Change the training budget to see how the best model size shifts.</p>
+      <p>At a fixed compute budget, a larger model uses more per-token compute and can thus train for fewer tokens.
+        The curves show this trade-off: the lowest point is the best balance between model size and data.</p>
       <div class="interactive">
         <div class="controls">
           <div class="control">
-            <label>
-              Recurrence-equivalence exponent \(\varphi\):
+            <label for="phi-slider">
+              Capacity gained from looping \(\varphi\):
               <span id="phi-value" class="val">0.459</span>
             </label>
-            <input id="phi-slider" type="range" step="0.01" min="0" max="1" value="0.459" />
-            <div class="help">
-              <span>0: no gain</span> &nbsp;·&nbsp;
-              <span class="fit">fit: <span id="phi-fit-label">0.46</span></span> &nbsp;·&nbsp;
-              <span>1: non-loop</span>
-            </div>
+            <input id="phi-slider" type="range" step="0.001" min="0" max="1" value="0.459" />
           </div>
           <div class="control">
-            <label>
+            <label for="c-slider">
               Training compute \(C\):
               <span id="c-value" class="val">1.0e19</span> FLOPs
             </label>
             <input id="c-slider" type="range" step="0.05" min="17.5" max="19.6" value="19.0" />
-            <div class="help">sweep range: \(4.6 \times 10^{17}\) to \(2.2 \times 10^{19}\) FLOPs</div>
           </div>
           <div>
             <button class="reset-btn" id="phi-reset">Reset \(\varphi\)</button>
@@ -354,48 +454,19 @@
         </div>
         <div class="plot-row">
           <div>
-            <div class="plot-title"><strong>Iso-FLOPs curves at selected \(C\)</strong></div>
-            <div id="phi-plot" class="plot"></div>
+            <div id="phi-plot" class="plot" role="img" aria-label="Predicted validation loss versus parameter count at the selected training budget" aria-describedby="size-plot-description"></div>
+            <p class="plot-description" id="size-plot-description">Each curve uses the same training budget.
+              Diamonds mark the model sizes with the lowest predicted loss.</p>
           </div>
           <div>
-            <div class="plot-title"><strong>Law vs. empirical minima across \(C\)</strong></div>
-            <div id="fit-plot" class="plot"></div>
+            <div id="fit-plot" class="plot" role="img" aria-label="Predicted best validation loss versus training compute, compared with experimental results" aria-describedby="budget-plot-description"></div>
+            <p class="plot-description" id="budget-plot-description">Lines show the best loss predicted by the law.
+              Crosses show optima estimated from our measured results and stay fixed when the sliders change.</p>
           </div>
         </div>
       </div>
-
-      <p class="interpretation-note">
-        <strong>Note on interpretation:</strong> The slider varies \(\varphi\) with all other fitted coefficients fixed, while a full refit would also re-estimate those coefficients.
-      </p>
-    </div>
-  </section>
-
-  <section id="diagnostics" class="chapter" aria-labelledby="diagnostics-title">
-    <h3 class="section-title" id="diagnostics-title">\(\Delta\varphi\) as a diagnostic tool</h3>
-    <div class="chapter-content prose">
-      <p>
-        The fitted \(\varphi\) depends on the training recipe and architecture.
-        A lower loss can come from better use of shared parameters or from reallocating saved compute to more training tokens; \(\Delta\varphi\) separates these effects.
-      </p>
-      <p>
-        We refit the joint law after two interventions, keeping the non-looped baseline unchanged:
-      </p>
-      <ul>
-        <li>
-          <strong>Truncated BPTT</strong> backpropagates through only the last \(\lceil r/2 \rceil\) recurrences, saving \({\sim}30\%\) of per-token training FLOPs.
-          Loss decreases, while \(\varphi\) falls from \(0.46\) to \(0.38\), indicating weaker recurrent capacity despite the lower loss.
-        </li>
-        <li>
-          <strong>Hyperconnections</strong> <em>[<a href="https://arxiv.org/abs/2409.19606">Zhu et al. 2025</a>]</em> mix two parallel residual lanes across loops.
-          They lower loss and raise \(\varphi\) from \(0.46\) to \(0.65\), indicating a gain in recurrent capacity; the \(r{=}2\) model even matches the non-looped baseline at some budgets.
-        </li>
-      </ul>
-      <p>
-        Reporting \(\Delta\varphi\) alongside validation loss helps attribute gains to recurrent capacity or training-budget changes.
-      </p>
-      <div class="paper-cta">
-        <a class="paper-link" href="https://openreview.net/forum?id=iBvm5lCnAJ">Read the full paper <span aria-hidden="true">↗</span></a>
-      </div>
+      <noscript><p>The interactive plots require JavaScript.
+        The findings above summarize the fitted results.</p></noscript>
     </div>
   </section>
 

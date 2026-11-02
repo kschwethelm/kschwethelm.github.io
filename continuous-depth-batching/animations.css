@@ -1,11 +1,4 @@
 #terminal { margin: 40px 0 0; }
-.chapter-explanation { margin-bottom: 36px; line-height: 1.7; }
-.cdb-components { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 36px; }
-.cdb-component { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--line); border-radius: 8px; background: var(--box-bg); color: var(--fg); }
-.cdb-component h4 { margin: 0 0 10px; font-size: 15px; line-height: 1.4; font-weight: 600; }
-.cdb-component p { margin: 0 0 16px; color: var(--dim); font-size: 14px; line-height: 1.6; }
-.blocks-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 16px; }
-.blocks-heading-label { flex: 1 1 300px; min-width: 0; margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; }
 .component-controls { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .component-controls[hidden], .terminal-actions[hidden] { display: none; }
 .component-controls button { padding: 5px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--dim); font: inherit; font-size: 12px; cursor: pointer; }
@@ -79,8 +72,6 @@
     line-height: 1.65;
   }
 }
-.decoding-intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; gap: 28px; }
-.intro-copy { font-size: 16px; line-height: 1.7; }
 .demo.intro-diagram { width: 100%; max-width: 406px; justify-self: center; border: 0; padding: 0; }
 .demo svg { display: block; width: 100%; height: auto; overflow: visible; }
 .demo text { fill: var(--fg); font-family: var(--diagram-font); font-size: 14px; }
@@ -95,10 +86,6 @@
 .demo .stage-box { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
 .demo .depth-colored rect { fill: color-mix(in srgb, var(--depth-color) 28%, var(--bg)); stroke: var(--depth-color); }
 .demo .depth-colored text { fill: var(--fg); }
-@media (max-width: 800px) {
-  .cdb-components { grid-template-columns: 1fr; }
-  .decoding-intro { grid-template-columns: 1fr; gap: 28px; }
-}
 @media (prefers-reduced-motion: reduce) {
   .demo *, .demo *::before, .demo *::after { transition: none !important; animation: none !important; }
   .component-preview * { transition: none !important; animation: none !important; }

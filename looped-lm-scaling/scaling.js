@@ -177,13 +177,13 @@ function updatePlot() {
   const C = Math.pow(10, logC);
   document.getElementById("phi-value").textContent = phi.toFixed(3);
   document.getElementById("c-value").textContent = C.toExponential(1);
-  const fitLabel = document.getElementById("phi-fit-label");
-  if (fitLabel) fitLabel.textContent = FIT.phi_fit.toFixed(2);
 
   const th = plotTheme();
+  const compact = document.getElementById("phi-plot").clientWidth < 360;
   const { traces, optima } = makeIsoFlopsTraces(phi, C);
   const layoutLeft = {
     xaxis: { title: "Total parameters N", type: "log", tickformat: ".0s", range: [7.0, 9.8],
+             tickmode: compact ? "array" : "auto", tickvals: compact ? [1e7, 1e8, 1e9] : undefined,
              gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
     yaxis: { title: "Validation loss (nats)", range: [2.2, 3.2],
              gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
@@ -201,6 +201,7 @@ function updatePlot() {
   const fitTraces = makeFitTraces(phi);
   const layoutRight = {
     xaxis: { title: "Training compute C (FLOPs)", type: "log", tickformat: ".0e", range: [17.4, 19.7],
+             tickmode: compact ? "array" : "auto", tickvals: compact ? [1e18, 1e19] : undefined,
              gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
     yaxis: { title: "Compute-optimal loss L* (nats)", range: [2.25, 3.05],
              gridcolor: th.gridcolor, zerolinecolor: th.gridcolor },
@@ -225,5 +226,16 @@ document.addEventListener("DOMContentLoaded", function () {
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePlot);
   }
+  // Keep plot widths and tick density in sync with the responsive layout.
+  let plotWidth = 0;
+  let resizeFrame;
+  const plotObserver = new ResizeObserver(([entry]) => {
+    const width = Math.round(entry.contentRect.width);
+    if (width === plotWidth) return;
+    plotWidth = width;
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(updatePlot);
+  });
+  plotObserver.observe(document.getElementById("phi-plot"));
   updatePlot();
 });
