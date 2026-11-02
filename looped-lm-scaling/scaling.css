@@ -1,0 +1,88 @@
+.prose .center-eq { max-width: 100%; overflow-x: auto; padding-block: 4px; text-align: center; margin: 8px 0 14px; }
+
+/* schematic */
+figure {
+  margin: 28px auto;
+  max-width: 680px;
+  text-align: center;
+}
+figure img { width: 100%; height: auto; }
+.architecture-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 28px; }
+.architecture-figures figure { width: 100%; max-width: none; min-width: 0; margin: 0; }
+.architecture-figures figcaption { margin-bottom: 14px; color: var(--fg); font-size: 14px; font-weight: 500; }
+.architecture-figures .project-diagram { aspect-ratio: 450 / 276; }
+
+/* interactive box */
+.interactive {
+  margin-top: 32px;
+  background: var(--box-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+}
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+.control label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.control .val {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--accent);
+}
+.control input[type=range] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.control .help {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 6px;
+}
+.control .help .fit { color: var(--accent); }
+.reset-btn {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+}
+.reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+.plot-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.plot-row .plot-title {
+  text-align: center;
+  font-size: 13px;
+  color: var(--dim);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.plot-row .plot { width: 100%; height: 300px; }
+
+.interpretation-note {
+  font-size: 13px;
+  color: var(--dim);
+  margin-top: 24px;
+}
+
+@media (max-width: 760px) {
+  .architecture-figures { grid-template-columns: 1fr; gap: 28px; }
+  .controls { grid-template-columns: 1fr; gap: 16px; }
+  .plot-row { grid-template-columns: 1fr; }
+  .plot-row .plot { height: 280px; }
+}
